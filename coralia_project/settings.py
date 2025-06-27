@@ -10,7 +10,7 @@ SECRET_KEY = 'django-insecure-dummy-key-for-local-dev-change-later'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ALLOWED_HOSTS = ['musicaparamisas.com', 'www.musicaparamisas.com', '198.58.99.196', 'new.musicaparamisas.com']
+ALLOWED_HOSTS = ['musicaparamisas.com', 'www.musicaparamisas.com', '198.58.99.196', 'new.musicaparamisas.com']
 
 # (Keep all existing content)
 # ...
