@@ -4,9 +4,9 @@ Django==4.2.23
 django-admin-sortable2==2.2.8
 django-user-visit
 gunicorn==23.0.0
-numpy==2.3.1
+numpy
 packaging==25.0
-pandas==2.3.0
+pandas
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
 pytz==2025.2
