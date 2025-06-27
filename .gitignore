@@ -1,5 +1,25 @@
-.env
+# Python
+__pycache__/
+*.pyc
+.Python
 venv/
-.git/
+.env
+.pytest_cache/
+
+# Database
 *.db
 *.sqlite3
+instance/
+
+# Flask-Migrate
+# migrations/versions/
+# If your Alembic environment config (env.py) isn't in migrations/
+# but that's less common.
+# migrations/env.py # Only ignore if you don't want env.py in git, usually you do.
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
