@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+{% block main_content %}
+<div class="hero-banner">
+    <p>La música más sublime, para los eventos de mayor importancia.</p>
+</div>
+<img class="intro-image" src="{% static 'img/foto-intro-pagina-2048x519.jpg' %}"
+    alt="Ensamble musical Coralia tocando en una iglesia." />
+
+<div class="container">
+    {% block content %}
+    <p>Coralia – Ensamble musical que ofrece música para misas en Guadalajara, Jalisco, México.</p>
+    <p>Coralia es un ensamble musical especializado en realizar música para misas en Guadalajara. De esta manera,
+        embellecemos eventos religiosos y civiles como: misas de cuerpo presente, aniversarios luctuosos, bautizos,
+        bodas y también XV años. Nos ajustamos a sus necesdades, por lo que, nuestra dotación va<strong> desde tres
+            músicos, hasta coro y orquesta</strong>. Le recomendamos <a href="{% url 'main:videos' %}">escuchar las
+            distintas opciones</a> para decidir la mejor dotación para su evento.</p>
+<p>Ponemos a su disposición <a href="">nuestro repertorio</a> de posibles obras para su evento.</p>
+<p>Para cualquier duda <a href="{% url 'main:contacto' %}">contáctenos</a> y ante la duda escúche nuestra música en <a
+        href="https://www.youtube.com/channel/UCqCBFljDL-WklloDpxAm8qA" target="_blank"
+        rel="noreferrer noopener">YouTube</a> o en <a href="{% url 'main:videos' %}">nuestro sitio</a>.</p>
+<figure class="wp-block-pullquote">
+    <blockquote>
+        <p>La música, al elevar
+            el alma a la contemplación, nos ayuda a captar los matices más íntimos
+            del genio humano, en el que se refleja algo de la belleza incomparable
+            del Creador del universo.”</p><cite>Discurso 21.04.06 Papa Benedicto XVI</cite>
+    </blockquote>
+</figure>
+
+<!-- ... rest of the content from index.php ... -->
+<p>Coralia cuenta con experiencia desde el 2010. Nuestra agrupación está conformada en su totalidad por músicos
+    profesionales y somos:</p>
+<p><strong>Liliana Michelle Mendoza, Voz principal. </strong>La voz soprano es la de mayor importancia en la música
+    cantada, por su liricismo, musicalidad, registro y natural belleza. <br></p>
+<p><strong>Alfonso Gonzalez Jimenez, Violonchelo.</strong> El instrumento con el registro más amplio en la familia de
+    las cuerdas, es capaz de hacer melodías, acompañamientos y bajos. Su sonoridad es ideal para proveer sustento al
+    resto de los instrumentos. <br></p>
+<p><strong>Pedro Martinez del Paso, Órgano Eléctrico.</strong> La base armónica del grupo reside en el órgano,
+    insturmento cási indispensable en cualquier agrupación sacra; en su versión eléctrica, el órgano es la base de la
+    sonoridad de la música de las iglesias. <br></p>
+<p><strong>Mariana Mendoza, Primer Violín.</strong> El violín embellece cualquier momento con su suave y delicado
+    sonido, cuyo bello <em>canto </em>es considerado el principal instrumento melódico. <br></p>
+<p><strong>Angélica Mendoza, Soprano II.</strong> El canto a dos voces es el inicio de cualquier coro y la música
+    escrita para dos sopranos es de tradicional belleza y versatilidad en la música sacra, en particular para cantos en
+    español y latín.</p>
+<p>El repertorio del ensamble incluye clásicos de todos los tiempos como misas en Latín u obras de compositores como
+    Bach, Beethoven y Mozart; hasta cantos de culto populares en español y canciones más recientes. </p>
+<p>La dotación del ensable permite adecuarse a distintos recintos y tipos de misas y eventos; así como manejar una
+    instrumentación y configuración flexible. También es posible que la agrupación ejecute música de su elección para
+    esos eventos tan importantes que desea embellecer. </p>
+<blockquote class="wp-block-quote">
+    <p>Para nosotros será un enorme gusto poderle brindar la música que se merece en uno de sus eventos de mayor
+        importancia. <em>«</em></p><cite>Pedro Martinez</cite>
+</blockquote>
+<h2 class="has-extra-large-font-size"
+    id="contratar-un-excelente-servicio-de-musica-para-misas-y-otras-fiestas-en-guadalajara-la-zmg-o-el-estado-de-jalisco-es-tan-sencillo-como-visitar-musicaparamisas-com">
+    Contratar un excelente servicio de música para misas y otras fiestas en Guadalajara, la ZMG o el estado de Jalisco,
+    es tan sencillo como visitar <a href="https://musicaparamisas.com/">MusicaParaMisas.com</a></h2>
+    {# ... The rest of the index page content ... #}
+    {% endblock %}
+    </div>
+{% endblock %}

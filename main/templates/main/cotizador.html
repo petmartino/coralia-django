@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Cotizador de Servicios Musicales{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Styles for the multi-step form */
+    .cotizador-container { max-width: 700px; margin: 2rem auto; padding: 2rem; background: #fff; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+    .cotizador-step { display: none; }
+    .cotizador-step.active { display: block; animation: fadeIn 0.5s; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #333; }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        box-sizing: border-box; /* Important */
+    }
+    .radio-group label { display: inline-block; margin-right: 1rem; }
+
+    .btn-group { display: flex; justify-content: space-between; margin-top: 2rem; }
+    .btn {
+        padding: 12px 25px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1em;
+        font-weight: 600;
+    }
+    .btn-primary { background-color: #1E90FF; color: white; }
+    .btn-primary:hover { background-color: #007bff; }
+    .btn-secondary { background-color: #6c757d; color: white; }
+    .btn-secondary:hover { background-color: #5a6268; }
+    .btn-large { padding: 15px 30px; font-size: 1.2em; }
+    
+    #initial-choice .btn { margin: 0 10px; }
+
+    #loading-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        flex-direction: column;
+        font-size: 1.5em;
+    }
+    .spinner {
+        border: 8px solid #f3f3f3; border-top: 8px solid #1E90FF;
+        border-radius: 50%; width: 60px; height: 60px;
+        animation: spin 1s linear infinite; margin-bottom: 20px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    #tracker-form { display: none; margin-top: 1rem; }
+</style>
+{% endblock %}
+
+{% block main_content %}
+<div class="cotizador-container">
+    {% block content %}
+    <!-- Initial choice screen -->
+    <div id="initial-choice" class="cotizador-step active" style="text-align: center;">
+        <h2>Bienvenido al Cotizador</h2>
+        <p>¿Qué le gustaría hacer?</p>
+        <div style="margin-top: 2rem;">
+            <button id="start-quote-btn" class="btn btn-primary btn-large">📅 Cotizar mi Evento</button>
+            <button id="track-quote-btn" class="btn btn-secondary btn-large">🔍 Rastrear Cotización</button>
+        </div>
+        <div id="tracker-form">
+            <form action="" method="POST">
+                <div class="form-group">
+                    <label for="tracking_code_input">Ingresa su código de 8 dígitos:</label>
+                    <input type="text" id="tracking_code_input" name="tracking_code" maxlength="8" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Buscar</button>
+            </form>
+        </div>
+    </div>
+
+    <form id="quote-form" action="" method="POST">
+        <!-- Step 1: Event Details -->
+        <div id="step-1" class="cotizador-step">
+            <h2>Paso 1: Detalles del Evento 📝</h2>
+            <div class="form-group">
+                <label for="event_type">Tipo de Evento</label>
+                <select id="event_type" name="event_type">
+                    <option>Bodas</option>
+                    <option>Misas (música para misas ordinarias)</option>
+                    <option>Aniversarios de matrimonio</option>
+                    <option>Bautizos</option>
+                    <option>XV años</option>
+                    <option>Graduaciones</option>
+                    <option>Misas de confirmación</option>
+                    <option>Cumpleaños</option>
+                    <option>Misas de cuerpo presente</option>
+                    <option>Aniversarios luctuosos</option>
+                    <option>Triduo</option>
+                    <option>Ceremonias civiles de matrimonio</option>
+                    <option>Amenizaciones en cena y celebraciones privadas</option>
+                    <option>Rosarios cantados</option>
+                    <option>Primera Comunión y Confirmación</option>
+                    <option>Otro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="event_date">Fecha y Hora (Opcional)</label>
+                <div style="display: flex; gap: 1rem;">
+                    <input type="date" id="event_date" name="event_date" style="flex: 2;">
+                    <input type="time" id="event_time" name="event_time" style="flex: 1;">
+                </div>
+            </div>
+             <div class="form-group">
+                <label for="location_type">Ubicación del Evento</label>
+                <select id="location_type" name="location_type">
+                    <option value="dentro_periferico">Dentro del periférico de Guadalajara</option>
+                    <option value="fuera_periferico">Fuera del periférico (ZMG)</option>
+                    <option value="1_hora">A 1 hora de Guadalajara</option>
+                    <option value="2_horas">A 2 horas de Guadalajara</option>
+                    <option value="3_horas">A más de 3 horas de Guadalajara</option>
+                </select>
+            </div>
+            <div class="form-group radio-group">
+                <label>El evento es en:</label>
+                <input type="radio" id="interior" name="is_exterior" value="false" checked> <label for="interior">Interior</label>
+                <input type="radio" id="exterior" name="is_exterior" value="true"> <label for="exterior">Exterior</label>
+            </div>
+            <div class="btn-group">
+                <span></span> <!-- to push the next button to the right -->
+                <button type="button" class="btn btn-primary" onclick="nextStep(2)">Siguiente →</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Ensemble Details -->
+        <div id="step-2" class="cotizador-step">
+            <h2>Paso 2: Detalles del Ensamble 🎶</h2>
+            <div class="form-group">
+                <label for="num_voices">Seleccione el tamaño del coro</label>
+                <select id="num_voices" name="num_voices">
+                    <option value="1">1 Voz</option>
+                    <option value="2">2 Voces</option>
+                    <option value="3">3 Voces</option>
+                    <option value="4">4 Voces</option>
+                    <option value="8">8 Voces</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="num_musicians">Seleccione el número de músicos</label>
+                <select id="num_musicians" name="num_musicians">
+                    <option value="1">1 Músico</option>
+                    <option value="2">2 Músicos</option>
+                    <option value="3">3 Músicos</option>
+                    <option value="4">4 Músicos</option>
+                    <option value="6">6 Músicos</option>
+                </select>
+            </div>
+             <div class="form-group">
+                <label for="dress_code">Código de Vestimenta</label>
+                <select id="dress_code" name="dress_code">
+                    <option>Formal-Casual</option>
+                    <option>Formal</option>
+                    <option>Gala</option>
+                </select>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn btn-secondary" onclick="prevStep(1)">← Anterior</button>
+                <button type="button" class="btn btn-primary" onclick="nextStep(3)">Siguiente →</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Contact Details -->
+        <div id="step-3" class="cotizador-step">
+            <h2>Paso 3: Datos de Contacto 📞</h2>
+            <p>Necesitamos su nombre y al menos un método de contacto.</p>
+            <div class="form-group">
+                <label for="client_name">Nombre Completo *</label>
+                <input type="text" id="client_name" name="client_name" required>
+            </div>
+            <div class="form-group">
+                <label for="client_phone">Teléfono Móvil (10 dígitos)</label>
+                <input type="tel" id="client_phone" name="client_phone" pattern="[0-9]{10}">
+            </div>
+            <div class="form-group">
+                <label for="client_email">Correo Electrónico</label>
+                <input type="email" id="client_email" name="client_email">
+            </div>
+             <div class="form-group">
+                <label for="contact_method">Prefiero que me contacten por:</label>
+                <select id="contact_method" name="contact_method">
+                    <option>WhatsApp</option>
+                    <option>Llamada Telefónica</option>
+                    <option>Correo Electrónico</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="comments">Comentarios adicionales</label>
+                <textarea id="comments" name="comments" rows="4"></textarea>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn btn-secondary" onclick="prevStep(2)">← Anterior</button>
+                <button type="submit" class="btn btn-primary">Generar Cotización</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Loading overlay -->
+<div id="loading-overlay">
+    <div class="spinner"></div>
+    <p>Revisando disponibilidad en el calendario...</p>
+</div>
+
+
+<script>
+    let currentStep = 0; // 0 is the initial choice screen
+    const steps = document.querySelectorAll('.cotizador-step');
+    const quoteForm = document.getElementById('quote-form');
+
+    document.getElementById('start-quote-btn').addEventListener('click', () => {
+        nextStep(1); // Go to the first step of the form
+    });
+    
+    document.getElementById('track-quote-btn').addEventListener('click', () => {
+        document.getElementById('tracker-form').style.display = 'block';
+    });
+
+    function showStep(stepIndex) {
+        steps.forEach((step, index) => {
+            step.classList.toggle('active', index === stepIndex);
+        });
+        currentStep = stepIndex;
+    }
+
+    function nextStep(stepIndex) {
+        showStep(stepIndex);
+    }
+
+    function prevStep(stepIndex) {
+        showStep(stepIndex);
+    }
+    
+    quoteForm.addEventListener('submit', function(e) {
+        // Client-side validation
+        const name = document.getElementById('client_name').value;
+        const phone = document.getElementById('client_phone').value;
+        const email = document.getElementById('client_email').value;
+
+        if (currentStep === 3 && (!name || (!phone && !email))) {
+            e.preventDefault();
+            alert('Por favor, ingrese su nombre y al menos un teléfono o correo electrónico.');
+            return;
+        }
+        
+        // Show loading animation on submit
+        document.getElementById('loading-overlay').style.display = 'flex';
+        // The animation will show for a moment before the form submits and the page reloads.
+    });
+
+</script>
+{% endblock %}
+</div>
+{% endblock %}

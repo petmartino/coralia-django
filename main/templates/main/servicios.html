@@ -1,0 +1,23 @@
+<!-- templates/servicios.html -->
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Servicios - Coralia Ensamble Musical{% endblock %}
+
+{% block main_content %}
+<div class="container">
+    {% block content %}
+    <p>Coralia asegura la calidad de su evento religioso al ser un ensamble profesional, serio y experimentado. <br><br>Ofrecemos los siguientes servicios artísticos musicales :</p>
+
+    <ul class="flex-servicios"><li>Misas (música para misas ordinarias)</li><li>Bodas</li><li>Aniversarios de matrimonio</li><li>Bautizos</li><li>XV años</li><li>Graduaciones</li><li>Misas de confirmación</li><li>Cumpleaños</li>
+    <li>Misas de cuerpo presente</li><li>Aniversarios luctuosos</li><li>Triduo</li><li>Ceremonias civiles de matrimonio </li><li>Amenizaciones en cena y celebraciones privadas</li><li>Rosarios cantados</li>
+    <li>Primera Comunión y Confirmación</li>
+    <li>Y <a href="http://youtube.com/coraliamusic">mas...</a></li></ul>
+    <p>Para conocer el precio de su servicio puede utilizar nuestro <a href="">cotizador</a></p>
+    <p><a href="{% url 'main:repertorio_list' %}	">Conozca nuestro repertorio aquí</a>. </p>
+    
+    <p>Atendemos eventos fuera de la ZMG en el interior del estado y el interior de la república mexicana. </p>
+
+    <img src="{% static 'img/Saint_Cecilia_Wymondley.jpg' %}" alt="Santa Cecilia" class="wp-image-213" width="100%">
+{% endblock %}
+</div>
+{% endblock %}

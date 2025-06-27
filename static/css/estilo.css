@@ -1,0 +1,301 @@
+/* static/css/estilo.css */
+
+/* --- Fonts & Body --- */
+@font-face {
+	font-family: 'Serif Pro';
+	src: url('SourceSerifPro-Regular.ttf');
+	font-weight: normal;
+}
+
+@font-face {
+	font-family: 'Serif Pro';
+	src: url('SourceSerifPro-Light.ttf');
+	font-weight: 300;
+	/* Light */
+}
+
+@font-face {
+	font-family: 'Serif Pro';
+	src: url('SourceSerifPro-SemiBold.ttf');
+	font-weight: 600;
+	/* Semi-bold */
+}
+
+body {
+	font-family: 'Serif Pro', serif;
+	font-weight: normal;
+	line-height: 1.6;
+	margin: 0;
+	color: #333;
+}
+
+/* --- Layout Containers --- */
+.container {
+	max-width: 800px;
+	margin: 2em auto;
+	padding: 0 1em;
+}
+
+/* --- Header & Navigation --- */
+.site-header {
+	padding: 1em 0;
+	text-align: center;
+	border-bottom: 1px solid #eee;
+}
+
+.site-header .logo-group a {
+	text-decoration: none;
+	color: inherit;
+	display: inline-block;
+}
+
+.site-header .logo {
+	display: block;
+	margin: 0 auto 0.5em auto;
+	border: 0;
+	height: 120px;
+	width: auto;
+}
+
+.site-header .site-title {
+	margin: 0;
+	padding: 0;
+	font-size: 2em;
+	font-weight: 300;
+	/* Light */
+}
+
+.site-header nav {
+	margin-top: 1em;
+}
+
+.site-header nav a {
+	margin: 0 0.75em;
+	font-size: 1.4em;
+	text-decoration: none;
+	color: #1E90FF;
+	font-weight: 600;
+	/* Semi-bold */
+}
+
+.site-header nav a:hover {
+	color: #5500aa;
+}
+
+/* --- Icon Styling for Navigation --- */
+.site-header nav a .nav-icon {
+	width: 1em;
+	/* Scales with the font size of the link */
+	height: 1em;
+	vertical-align: middle;
+	/* Aligns the icon nicely in the center */
+	margin-bottom: 2px;
+	/* Small adjustment for perfect visual centering */ }
+
+/* --- Main Content --- */
+.site-main {
+	clear: both;
+	/* Ensures it sits below floated elements if any */
+}
+
+.hero-banner {
+	background-image: url('../img/expiatorio.jpg');
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	height: 300px;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	text-align: center;
+}
+
+.hero-banner p {
+	font-size: clamp(1.5rem, 4vw, 3rem);
+	/* Responsive font size */
+	font-weight: 300;
+	/* Semi-bold */
+	max-width: 1024px;
+	margin: 0 1em;
+	text-shadow: 0 2px 4px rgba(0, 0, 0, 1);
+}
+
+.intro-image {
+	max-width: 100%;
+	height: auto;
+	display: block;
+}
+
+/* --- Page-Specific Styles --- */
+.about-image {
+	float: left;
+	margin-right: 1em;
+	margin-bottom: 1em;
+}
+
+/* Cotizador styles */
+.quote-box {
+	background-color: #f0e6ff;
+	/* Lavender */
+	padding: 1em;
+	margin: 1em 0;
+	text-align: center;
+}
+
+.quote-box-highlight {
+	background-color: gold;
+	font-weight: 600;
+	padding: .3em .5em;
+}
+
+.reservation-form {
+	background-color: #d3d3d3;
+	/* Silver */
+	padding: 1em;
+	margin: 1em 0;
+}
+
+/* Repertorio list styles */
+.repertoire-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 1em;
+}
+
+.repertoire-table th,
+.repertoire-table td {
+	border: 1px solid #ddd;
+	padding: 8px;
+	text-align: left;
+}
+
+.repertoire-table th {
+	background-color: #f2f2f2;
+}
+
+.repertoire-table tr:hover {
+	background-color: #f5f5f5;
+}
+
+/* Repertorio detail styles */
+.lyrics-container {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2em;
+}
+
+.lyrics-column {
+	flex: 1;
+	min-width: 300px;
+	white-space: pre-wrap;
+	font-family: monospace;
+	background-color: #fafafa;
+	padding: 1em;
+	border-radius: 4px;
+}
+
+.sample-placeholder {
+	margin-top: 2em;
+	padding: 1em;
+	background-color: #f9f9f9;
+	border: 1px dashed #ccc;
+}
+
+
+/* --- Utility & WordPress carry-over classes --- */
+.wp-block-pullquote {
+	font-size: 1.3em;
+	font-weight: 300;
+	border-left: 4px solid #ccc;
+	padding-left: 0em;
+	margin: 1.5em 0;
+}
+
+.wp-block-quote {
+	font-style: italic;
+}
+
+/* --- Responsive iFrames for Videos --- */
+.video-container {
+	position: relative;
+	padding-bottom: 56.25%;
+	/* 16:9 aspect ratio */
+	height: 0;
+	overflow: hidden;
+	max-width: 100%;
+	margin: 1em 0;
+}
+
+.video-container iframe {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.video-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	gap: 20px;
+	margin-bottom: 40px;
+}
+
+h3 {
+	border-bottom: 2px solid #ccc;
+	padding-bottom: 10px;
+}
+
+/* The library handles the video styling, but you can override it */
+lite-youtube {
+	border-radius: 8px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Footer Styles --- */
+
+.site-footer {
+	background-color: #f8f8f8;
+	/* A light grey background */
+	color: #555;
+	padding: 20px 40px;
+	border-top: 1px solid #e7e7e7;
+	text-align: center;
+	margin-top: 40px;
+	/* Adds some space above the footer */
+}
+
+.footer-content {
+	max-width: 1200px;
+	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 15px;
+}
+
+.social-links {
+	display: flex;
+	gap: 20px;
+	/* Space between icons */
+}
+
+.social-link svg {
+	width: 28px;
+	height: 28px;
+	fill: #555;
+	/* Icon color */
+	transition: fill 0.3s ease, transform 0.3s ease;
+}
+
+.social-link:hover svg {
+	fill: #c79c60;
+	/* A gold/accent color on hover - change to your brand color! */
+	transform: scale(1.1);
+}
+
+.copyright {
+	font-size: 0.9em;
+}

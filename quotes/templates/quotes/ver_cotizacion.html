@@ -1,0 +1,139 @@
+{% extends "main/base.html" %}
+
+{% block title %}Tu Cotización - {{ quote.tracking_code }}{% endblock %}
+
+{% block head_extra %}
+<style>
+    .quote-summary-container {
+        max-width: 700px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: #f9f9f9;
+        border-left: 5px solid #1E90FF;
+    }
+
+    .quote-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .tracking-code {
+        font-size: 1.5em;
+        font-weight: bold;
+        background: #e0e0e0;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        display: inline-block;
+        font-family: monospace;
+    }
+
+    .quote-total {
+        text-align: center;
+        margin: 2rem 0;
+    }
+
+    .total-price {
+        font-size: 2.5em;
+        font-weight: 600;
+        color: #1E90FF;
+    }
+
+    .quote-details ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .quote-details li {
+        background: #fff;
+        padding: 10px 15px;
+        margin-bottom: 8px;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .quote-details li strong {
+        color: #555;
+    }
+
+    .disclaimer {
+        font-style: italic;
+        color: #666;
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+    .contact-cta {
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 12px 25px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1em;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #218838;
+    }
+</style>
+{% endblock %}
+
+{% block main_content %}
+<div class="quote-summary-container">
+    {% block content %}
+    <div class="quote-header">
+        <h2>🎉 ¡Gracias, {{ quote.client_name }}! Hemos generado tu cotización.</h2>
+        <p>Guarda este código para futuras referencias:</p>
+        <span class="tracking-code">{{ quote.tracking_code }}</span>
+    </div>
+
+    <div class="quote-total">
+        <p>Costo Total Estimado (IVA Incluido)</p>
+        <div class="total-price">
+            ${{ quote.total_cost|floatformat:2 }} MXN
+        </div>
+    </div>
+
+    <div class="quote-details">
+        <h3>Resumen de tu Solicitud</h3>
+        <ul>
+            <li><strong>Evento:</strong> <span>{{ quote.event_type }}</span></li>
+            <li><strong>Ensamble:</strong> <span>{{ quote.num_voices }} {% if quote.num_voices == 1 %}Voz{% else
+                    %}Voces{% endif %} y {{ quote.num_musicians }} {% if quote.num_musicians == 1 %}Músico{% else
+                    %}Músicos{% endif %}</span></li>
+            <li><strong>Código de Vestimenta:</strong> <span>{{ quote.dress_code }}</span></li>
+            {% if quote.event_date %}
+            <li><strong>Fecha Estimada:</strong> <span>{{ quote.event_date|date:"d \d\e F, Y" }}</span></li>
+            {% endif %}
+            <li><strong>Ubicación:</strong> <span>{{ quote.get_location_type_display }}</span></li>
+        </ul>
+    </div>
+
+    <div class="disclaimer">
+        <p>Esta cotización es informativa y válida por 15 días. No constituye ninguna obligación o contrato. Los precios
+            pueden variar si los detalles del evento cambian. Para confirmar disponibilidad y contratar, por favor
+            contáctanos.</p>
+    </div>
+
+    <div class="contact-cta">
+        <h3>¿Listo para contratar?</h3>
+        <p>¡Hagamos que tu evento sea inolvidable!</p>
+        <a href="{% url 'main:contacto' %}" class="btn btn-primary">Contactar para Contratar</a>
+    </div>
+</div>
+{% endblock %}
+</div>
+{%endblock%}

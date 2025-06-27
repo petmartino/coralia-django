@@ -1,0 +1,134 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+
+    .dashboard-widget {
+        background-color: #f9f9f9;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+    }
+
+    .dashboard-widget h2 {
+        margin-top: 0;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 0.5rem;
+    }
+
+    .timeline-container {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .session-timeline {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px dashed #ccc;
+    }
+
+    .session-timeline strong {
+        font-family: monospace;
+        font-size: 0.9em;
+    }
+
+    .session-timeline ol {
+        padding-left: 20px;
+        margin: 5px 0 0 0;
+    }
+
+    .session-timeline li {
+        color: #555;
+    }
+</style>
+
+<h1>📊 Dashboard de Estadísticas</h1>
+{# --- ADD THIS BLOCK TO RENDER THE APP LIST --- #}
+{% if app_list %}
+{% include "admin/app_list.html" with app_list=app_list %}
+{% endif %}
+{# ------------------------------------------- #}
+
+{% if no_data %}
+<p>No hay suficientes datos de visitas para mostrar las estadísticas.</p>
+{% else %}
+<div class="dashboard-grid">
+    <div class="dashboard-widget">
+        <h2>Visitantes Únicos por Día</h2>
+        <canvas id="dailyVisitorsChart"></canvas>
+    </div>
+    <div class="dashboard-widget">
+        <h2>Visitantes Únicos por Semana</h2>
+        <canvas id="weeklyVisitorsChart"></canvas>
+    </div>
+    <div class="dashboard-widget">
+        <h2>Páginas Más Populares</h2>
+        <ol>
+            {% for path, count in top_pages.items %}
+            <li><strong>{{ path }}</strong> ({{ count }} visitas)</li>
+            {% endfor %}
+        </ol>
+    </div>
+    <div class="dashboard-widget">
+        <h2>Actividad de Sesiones Recientes</h2>
+        <div class="timeline-container">
+            {% for session_id, data in sorted_sessions %}
+            <div class="session-timeline">
+                <p>
+                    <strong>{{ session_id|slice:":8" }}...</strong> -
+                    <small>{{ data.start_time|date:"Y-m-d H:i" }}</small>
+                </p>
+                <ol>
+                    {% for path in data.timeline %}
+                    <li>{{ path }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const dailyCtx = document.getElementById('dailyVisitorsChart').getContext('2d');
+    new Chart(dailyCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_data.daily_labels | safe }},
+        datasets: [{
+            label: 'Visitantes Únicos',
+            data: {{ chart_data.daily_values | safe }},
+        backgroundColor: 'rgba(142, 68, 173, 0.6)',
+        borderColor: 'rgba(142, 68, 173, 1)',
+        borderWidth: 1
+            }]
+        },
+        options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+    });
+
+    const weeklyCtx = document.getElementById('weeklyVisitorsChart').getContext('2d');
+    new Chart(weeklyCtx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_data.weekly_labels | safe }},
+        datasets: [{
+            label: 'Visitantes Únicos',
+            data: {{ chart_data.weekly_values | safe }},
+        fill: true,
+        backgroundColor: 'rgba(41, 128, 185, 0.2)',
+        borderColor: 'rgba(41, 128, 185, 1)',
+        tension: 0.1
+            }]
+        },
+        options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+    });
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,55 @@
+<!-- templates/repertorio_list.html -->
+{% extends "base.html" %}
+
+{% block title %}Repertorio - Coralia Ensamble Musical{% endblock %}
+
+{% block main_content %}
+<div class="container">
+    {% block content %}
+    <h2>Nuestro Repertorio</h2>
+    <p>A continuación se presenta una lista de piezas musicales que forman parte de nuestro repertorio para misas, bodas y otros eventos. Haga clic en una pieza para ver más detalles y su letra.</p>
+
+    <style>
+        .repertoire-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+        }
+        .repertoire-table th, .repertoire-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .repertoire-table th {
+            background-color: #f2f2f2;
+        }
+        .repertoire-table tr:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+
+    <table class="repertoire-table">
+        <thead>
+            <tr>
+                <th>Nombre de la Pieza</th>
+                <th>Compositor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for piece in pieces %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('main.repertorio_detail', piece_id=piece.id) }}">{{ piece.nombre }}</a>
+                </td>
+                <td>{{ piece.compositor }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="2">No hay piezas en el repertorio en este momento.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+</div>
+{% endblock %}

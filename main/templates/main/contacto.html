@@ -1,0 +1,36 @@
+<!-- templates/contacto.html -->
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Contacto - Coralia Ensamble Musical{% endblock %}
+
+{% block main_content %}
+<div class="container">
+    {% block content %}
+    <p>Nos encontramos en la ciudad de Guadalajara, Jalisco, México. 
+    <br><img src="{% static 'img/whatsapp.png'%}" height="18px"> Contáctenos al <strong>33 1302 9450</strong>, <strong>33 1547 8443</strong> o <strong>33 1420 6311</strong> por texto de whatsapp o vía telefónica.</p>
+
+    <!-- The original form from your file, still commented out -->
+    <!--
+    <style>
+    form {font-family: monospace; }
+    table td {padding: .5em; vertical-align: top;}
+    </style>
+    <form action="/do/postWebsiteForm.php" method="post" style="">
+    <table style="background-color: whitesmoke" border="0">
+    <tbody><tr><td width="35%">Su nombre completo:<span style="background-color: orange;">*</span></td><td><input type="text" name="clientName"></td></tr>
+    <tr><td>Su email:</td><td><input type="text" name="clientEmail"></td></tr>
+    <tr><td>Teléfono movil:<span style="background-color: orange;">*</span></td><td><input type="text" name="clientMobilePhone"></td></tr>
+    <tr><td>¿Cómo prefiere ser contactado?</td><td>
+    <input type="radio" name="contactMethod" checked="checked" value="whatsapp"> Whatsapp <br>
+    <input type="radio" name="contactMethod" value="email"> Email <br>
+    <input type="radio" name="contactMethod" value="phone"> Teléfono <br> 
+    </td></tr>
+    ... and so on ...
+    </tbody></table>
+    </form>
+    -->
+    
+    <p>Revise nuestra <a href="{% url 'main:politica' %}">política de privacidad</a> para conocer el uso que le damos a la información que usted envía en el sitio web MusicaParaMisas.com</p>
+    {% endblock %}
+    </div>
+{% endblock %}

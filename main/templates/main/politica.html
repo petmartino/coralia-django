@@ -1,0 +1,54 @@
+<!-- templates/politica.html -->
+{% extends "base.html" %}
+
+{% block title %}Política de Privacidad - Coralia Ensamble Musical{% endblock %}
+
+{% block main_content %}
+<div class="container">
+    {% block content %}
+    <h2>Sobre este sitio web y su información</h2>
+    <p><strong class="privacy-policy-tutorial"></strong><strong class="privacy-policy-tutorial"></strong>Nuestro sitio web es: 
+    </p>
+    <pre>
+    https://musicaparamisas.com
+    </pre>
+
+    <p>Es importante que verifique que su conexión utilize el protocolo <strong>https://</strong> 
+    <br>La letra "s" en https es importante y puede rectificarlo con el ícono del candado	 en 
+    la barra de su navegador. Esto significa que toda la información que viaje entre ustéd y nuestro sitio web, 
+    viajará encriptada desde su computadora o telefono hacia el servidor y viceversa, solo la desencripta su navegador al momento de accesar. Esto se le llama "End-to-End 
+    encryption."	 </p> 
+
+
+    <h2>Mensajes y commentarios</h2>
+    <p>Cuando un visitante a nuestro sitio web hace un comentario utilizando nuestro formulario de contacto; recolectamos los detalles del formulario, la dirección IP del visitante y detalles de su navegador para poder filtrar y detectar spam.</p>
+
+    <h2>¿Que información recolectamos?</h2>
+    <h2>Datos Técnicos que Recolectamos</h2>
+    <p>
+        Cuando visita nuestro sitio web, nuestros servidores registran automáticamente información técnica para fines
+        estadísticos y de seguridad. Esta información incluye su dirección IP (Protocolo de Internet), el tipo de navegador
+        que utiliza, la página que nos refirió a nuestro sitio (si aplica), y las páginas que visita dentro de
+        musicaparamisas.com, así como la fecha y hora de su visita. Esta recolección de datos es una práctica estándar en la
+        web y nos ayuda a mantener la seguridad del sitio, analizar tendencias de uso para mejorar nuestros servicios, y
+        diagnosticar problemas técnicos. No utilizamos esta información para identificarlo personalmente.
+    </p>
+
+    
+    <h2>Cookies</h2>
+    <p>No utilizamos cookies en este sitio web.</p>
+
+    <h2>Contenido de otros sitios web.</h2>
+    <p>Nuestro sitio web puede incluir contenidos de sitios externos (ej: videos, imágenes, artículos, entre otros). Toda la información embebida de sitios externos funciona de forma idéntica al sitio web externo; por lo que estos sitios podrían recolectando datos sobre ti, usar cookes e incluso incluir código para rastrearte por terceras personas. Es importante que monitoreés y estes al tanto de los contenidos de sitios web externos ubicados en musicaparamisas.com</p>
+
+    <h2>¿Con quién compartimos tu información?</h2>
+    <p>No compartimos tu información con terceras personas. Solo la usamos internamente en el grupo para contactarte y coordinar los servicios que contrates.</p>
+
+    <h2>Temporalidad de los datos </h2>
+    <p>Cualquier dato retenido en nuestro sitio web tiene una temporalidad indefinida, y será utilizado para las actividades que nuestra agrupación considere pertinente. </p>
+
+    <h2>Que derechos tienes sobre tus datos. </h2>
+    <p><strong class="privacy-policy-tutorial">Puedes solicitar </strong>altas, cambios, y cancelación de los datos tuyos que nuestro sitio web pueda tener en cualquier momento. Para realizarlo es necesario hacer una solicitúd por escrito a quien corresponda, y enviarlo a Av. Beethoven 5006-1, Zapopan Jalisco, 45020. Otra opción es buscarnos mediante nuestro sitio web en la sección de <a href="{{ url_for('main.contacto') }}">contacto</a> donde también está publicado el teléfono del administrador del sitio. En la solicitúd es necesario escribir que deseas que tu información sea modificada o eliminada de nuestra base de datos. </p>
+{% endblock %}
+</div>
+{%endblock%}
