@@ -2,7 +2,7 @@ asgiref==3.8.1
 base58==2.1.1
 Django==4.2.23
 django-admin-sortable2==2.2.8
-django-user-visit==0.2.1
+django-user-visit
 gunicorn==23.0.0
 numpy==2.3.1
 packaging==25.0
