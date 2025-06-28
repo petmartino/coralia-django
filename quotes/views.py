@@ -142,7 +142,7 @@ def cotizador_view(request):
                 plain_message = render_to_string('emails/quote_confirmation.txt', email_context)
 
                 send_mail(
-                    to='pedromartinezdelpaso@gmail.com'
+                    to='pedromartinezdelpaso@gmail.com',
                     subject=f'Confirmación de Cotización Coralia: #{new_quote.tracking_code}',
                     message=plain_message, # Plain text version
                     from_email=None,  # Will use DEFAULT_FROM_EMAIL from settings
