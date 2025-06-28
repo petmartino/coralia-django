@@ -80,10 +80,16 @@ TIME_ZONE = 'America/Mexico_City'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
+# This is the directory where collectstatic will gather all static files
+# for production deployment.
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# This is the storage engine that manages static files in production
+# It's provided by the WhiteNoise package we installed.
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
