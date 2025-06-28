@@ -1,0 +1,12 @@
+Hola {{ quote.client_name }},
+
+Gracias por solicitar una cotización con Coralia Ensamble Musical.
+
+Hemos recibido su solicitud para un evento de tipo: {{ quote.event_type }}
+Su código de rastreo es: {{ quote.tracking_code }}
+El costo total estimado es: ${{ quote.total_cost|floatformat:2 }} MXN.
+
+Nos pondremos en contacto con usted pronto para confirmar la disponibilidad y los siguientes pasos.
+
+Saludos,
+El equipo de Coralia.
