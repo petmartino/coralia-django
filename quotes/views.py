@@ -10,9 +10,11 @@ from .forms import QuoteForm, TrackerForm
 
 def generate_tracking_code():
     while True:
-        code = base58.b58encode(uuid.uuid4().bytes).decode('utf-8')[:8]
+        # Generate the code and immediately force it to lowercase
+        code = base58.b58encode(uuid.uuid4().bytes).decode('utf-8')[:8].lower()
         if not Quote.objects.filter(tracking_code=code).exists():
             return code
+
 
 def cotizador_view(request):
     if request.method == 'POST':
@@ -134,6 +136,7 @@ def cotizador_view(request):
     return render(request, 'quotes/cotizador.html', {'form': form, 'tracker_form': tracker_form})
 
 def ver_cotizacion_view(request, code):
+    code = code.lower()
     quote = get_object_or_404(Quote, tracking_code=code)
     return render(request, 'quotes/ver_cotizacion.html', {'quote': quote})
 
@@ -141,7 +144,7 @@ def rastrear_cotizacion_view(request):
     if request.method == 'POST':
         form = TrackerForm(request.POST)
         if form.is_valid():
-            code = form.cleaned_data.get('tracking_code')
+            code = form.cleaned_data.get('tracking_code').lower()
             quote = Quote.objects.filter(tracking_code=code).first()
             if quote:
                 return redirect(reverse('quotes:ver_cotizacion', args=[code]))
