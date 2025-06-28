@@ -5,6 +5,7 @@ import sys
 
 
 def main():
+    load_dotenv() 
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'coralia_project.settings')
     try:
