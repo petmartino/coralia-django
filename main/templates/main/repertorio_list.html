@@ -39,7 +39,7 @@
             {% for piece in pieces %}
             <tr>
                 <td>
-                    <a href="{{ url_for('main.repertorio_detail', piece_id=piece.id) }}">{{ piece.nombre }}</a>
+                    <a href="{% url 'main:repertorio_detail' piece.id %}">{{ piece.nombre }}</a>
                 </td>
                 <td>{{ piece.compositor }}</td>
             </tr>
