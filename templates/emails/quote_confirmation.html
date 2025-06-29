@@ -1,7 +1,13 @@
 <p>Hola {{ quote.client_name }},</p>
 <p>Gracias por solicitar una cotización con Coralia Ensamble Musical.</p>
-<p>Hemos recibido su solicitud para un evento de tipo: <strong>{{ quote.event_type }}</strong></p>
+<p>Estas cotizaciones son solamente informativas de acuerdo a la información ingresada en nuestro sitio web y sirven para dar seguimiento
+    a su solicitud. 
+</p>
+<p>Tipo de evento: <strong>{{ quote.event_type }}</strong></p>
+<p>Fecha: <strong>{{ quote.event_date }}</strong></p>
+<p>Hora: <strong>{{ quote.event_time }}</strong></p>
+
 <p>Su código de rastreo es: <strong>{{ quote.tracking_code }}</strong></p>
 <p>El costo total estimado es: <strong>${{ quote.total_cost|floatformat:2 }} MXN.</strong></p>
-<p>Nos pondremos en contacto con usted pronto para confirmar la disponibilidad y los siguientes pasos.</p>
-<p>Saludos,<br>El equipo de Coralia.</p>
+<p>Favor de <a href="https://musicaparamisas.com/contacto">contactarnos</a> para dudas y contrataciones.</p>
+<p>Saludos,<br>Coralia Ensamble Musical.<br><a href="MusicaParaMisas.com">MusicaParaMisas.com</a></p>
