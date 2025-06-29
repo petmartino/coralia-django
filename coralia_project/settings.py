@@ -145,30 +145,30 @@ ADMIN_REORDER = (
 
 # DJANGO-REQUEST CONFIGURATION
 # ------------------------------------------------------------------------------
-REQUEST_TRACK_IP = True
-REQUEST_IGNORE_AJAX = True
-REQUEST_IGNORE_STATIC = True
 
-# A list of paths to ignore. You can add more if needed.
-REQUEST_IGNORE_PATHS = (
-    '/admin/',
-    '/static/',
-    '/media/',
-    '/favicon.ico',
+# A list of paths to ignore. Django-request will not store requests for these paths.
+IGNORE_PATHS = (
+    r'^admin/',
+    r'^static/',
+    r'^media/',
 )
 
-# A list of common bot user agents to ignore.
-REQUEST_IGNORE_USER_AGENTS = (
-    r'bingbot',
-    r'Googlebot',
-    r'AhrefsBot',
-    r'SemrushBot',
-    r'YandexBot',
-    r'DotBot',
+# A list of user agents to ignore.
+IGNORE_USER_AGENTS = (
+    r'.*bingbot.*',
+    r'.*Googlebot.*',
+    r'.*AhrefsBot.*',
+    r'.*SemrushBot.*',
+    r'.*YandexBot.*',
+    r'.*DotBot.*',
 )
 
-# THIS IS THE MOST IMPORTANT SETTING FOR YOUR PROBLEM:
-# By default, django-request ignores authenticated staff and superusers.
-# Setting it to an empty list [] tells it to LOG EVERYONE.
-# You can later change this to ['staff', 'superuser'] to only log anonymous users.
-REQUEST_IGNORE_USERS = []
+# A list of usernames to ignore.
+# Set to an empty tuple to log requests from all users, including staff.
+IGNORE_USERNAME = ()
+
+# Only log requests that result in an error.
+ONLY_ERRORS = False
+
+# Don't log AJAX requests.
+IGNORE_AJAX = True
