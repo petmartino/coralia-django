@@ -1,23 +1,101 @@
-<!-- templates/servicios.html -->
-{% extends "base.html" %}
+<!-- main/templates/main/servicios.html -->
+{% extends "main/base.html" %}
 {% load static %}
 {% block title %}Servicios - Coralia Ensamble Musical{% endblock %}
+
+{% block head_extra %}
+<style>
+    .servicios-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        /* 2/3 for services, 1/3 for repertoire */
+        gap: 2.5rem;
+    }
+
+    .servicios-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .servicios-list li {
+        background: url('{% static "img/music-note.svg" %}') no-repeat left center;
+        background-size: 16px;
+        padding-left: 28px;
+        margin-bottom: 1rem;
+        font-size: 1.1em;
+    }
+
+    .repertoire-widget {
+        background-color: #f9f9f9;
+        padding: 1.5rem;
+        border-radius: 8px;
+    }
+
+    .repertoire-widget h3 {
+        margin-top: 0;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 0.5rem;
+    }
+
+    .repertoire-widget ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .repertoire-widget li {
+        padding: 0.5rem 0;
+    }
+</style>
+{% endblock %}
+
 
 {% block main_content %}
 <div class="container">
     {% block content %}
-    <p>Coralia asegura la calidad de su evento religioso al ser un ensamble profesional, serio y experimentado. <br><br>Ofrecemos los siguientes servicios artísticos musicales :</p>
+    <h2>Nuestros Servicios</h2>
+    <p>Coralia asegura la calidad de su evento religioso al ser un ensamble profesional, serio y experimentado.
+        Ofrecemos los siguientes servicios artísticos musicales para:</p>
 
-    <ul class="flex-servicios"><li>Misas (música para misas ordinarias)</li><li>Bodas</li><li>Aniversarios de matrimonio</li><li>Bautizos</li><li>XV años</li><li>Graduaciones</li><li>Misas de confirmación</li><li>Cumpleaños</li>
-    <li>Misas de cuerpo presente</li><li>Aniversarios luctuosos</li><li>Triduo</li><li>Ceremonias civiles de matrimonio </li><li>Amenizaciones en cena y celebraciones privadas</li><li>Rosarios cantados</li>
-    <li>Primera Comunión y Confirmación</li>
-    <li>Y <a href="http://youtube.com/coraliamusic">mas...</a></li></ul>
-    <p>Para conocer el precio de su servicio puede utilizar nuestro <a href="">cotizador</a></p>
-    <p><a href="{% url 'main:repertorio_list' %}	">Conozca nuestro repertorio aquí</a>. </p>
-    
-    <p>Atendemos eventos fuera de la ZMG en el interior del estado y el interior de la república mexicana. </p>
+    <div class="servicios-grid">
+        <div class="servicios-main">
+            <ul class="servicios-list">
+                {% for event in event_types %}
+                <li>{{ event.name }}</li>
+                {% empty %}
+                <li>Bodas</li>
+                <li>Misas (música para misas ordinarias)</li>
+                <li>Aniversarios de matrimonio</li>
+                <li>Bautizos</li>
+                <li>XV años</li>
+                <li>y muchos más...</li>
+                {% endfor %}
+            </ul>
+            <p style="margin-top: 2rem;">Para conocer el precio de su servicio puede utilizar nuestro <a
+                    href="{% url 'quotes:cotizador' %}">cotizador en línea</a>.</p>
+            <p>Atendemos eventos fuera de la ZMG en el interior del estado y el interior de la república mexicana.</p>
+        </div>
 
-    <img src="{% static 'img/Saint_Cecilia_Wymondley.jpg' %}" alt="Santa Cecilia" class="wp-image-213" width="100%">
-{% endblock %}
+        <aside class="repertoire-widget">
+            <h3>Repertorio Popular</h3>
+            {% if popular_pieces %}
+            <ul>
+                {% for piece in popular_pieces %}
+                <li>{{ piece.nombre }} - <em>{{ piece.compositor }}</em></li>
+                {% endfor %}
+            </ul>
+            <p style="margin-top: 1.5rem; text-align: center;">
+                <a href="{% url 'main:repertorio_list' %}" class="btn-secondary"
+                    style="text-decoration: none; padding: 10px 15px; border-radius: 5px;">Ver repertorio completo</a>
+            </p>
+            {% else %}
+            <p>Nuestro repertorio es muy amplio, <a href="{% url 'main:repertorio_list' %}">consúltelo aquí</a>.</p>
+            {% endif %}
+        </aside>
+    </div>
+
+    <img src="{% static 'img/Saint_Cecilia_Wymondley.jpg' %}" alt="Santa Cecilia" class="wp-image-213" width="100%"
+        style="margin-top: 2rem;">
+    {% endblock %}
 </div>
 {% endblock %}

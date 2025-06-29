@@ -2,12 +2,12 @@
 
 from django.contrib import admin
 from .models import Quote, Program, ProgramItem, EventType, Package, QuoteHistory # <-- Import new models
-from adminsortable2.admin import SortableInlineAdminMixin
+from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin
 
 # Register the new Package model
 @admin.register(Package)
 class PackageAdmin(admin.ModelAdmin):
-    list_display = ('name', 'num_singers', 'num_instrument_players', 'is_active')
+    list_display = ('name', 'num_singers', 'num_instrument_players')
     list_filter = ('is_active',)
     search_fields = ('name',)
 
@@ -25,13 +25,13 @@ class ProgramItemInline(SortableInlineAdminMixin, admin.TabularInline):
 
 # UPDATED: Remove SortableAdminMixin to fix the error and disable sorting.
 @admin.register(Program)
-class ProgramAdmin(admin.ModelAdmin): # <--- REMOVED SortableAdminMixin
+class ProgramAdmin(SortableAdminMixin, admin.ModelAdmin): # <--- REMOVED SortableAdminMixin
     inlines = [ProgramItemInline]
     list_display = ('__str__', 'quote_tracking_code', 'piece_count')
     search_fields = ['name', 'quote__tracking_code']
 
     # This allows you to edit the name directly in the list view
-    list_display_links = ('__str__',)
+    list_display_links = ('name',)
 
     @admin.display(description='Quote ID')
     def quote_tracking_code(self, obj):
@@ -101,7 +101,7 @@ class QuoteAdmin(admin.ModelAdmin):
 
     # UPDATED save_model to include recalculation and history tracking
     def save_model(self, request, obj, form, change):
-        from .views import calculate_pricing # We'll move pricing logic to a utility function
+        from .utils import calculate_pricing  # We'll move pricing logic to a utility function
         
         original_obj = None
         if change:

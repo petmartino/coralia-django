@@ -1,0 +1,115 @@
+{% extends "main/base.html" %}
+
+{% block title %}Detalle de Cotización - {{ quote.tracking_code }}{% endblock %}
+
+{% block head_extra %}
+<style>
+    .quote-detail-container { max-width: 800px; margin: 2rem auto; padding: 2rem; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .quote-header { text-align: center; margin-bottom: 2rem; border-bottom: 1px solid #eee; padding-bottom: 1.5rem; }
+    .tracking-code { font-size: 1.5em; font-weight: bold; background: #eef; padding: 0.5rem 1rem; border-radius: 8px; display: inline-block; font-family: monospace; color: #33a; }
+    .quote-status { font-size: 1.2em; font-weight: bold; padding: 0.5rem 1rem; border-radius: 20px; display: inline-block; margin-top: 1rem; }
+    .status-UNCONFIRMED { background-color: #ffc107; color: #333; }
+    .status-CONFIRMED { background-color: #28a745; color: white; }
+    .status-COMPLETED { background-color: #17a2b8; color: white; }
+    .status-CANCELLED { background-color: #dc3545; color: white; }
+    
+    .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 1.5rem;}
+    .grid-widget { background: #f9f9f9; padding: 1.5rem; border-radius: 8px; }
+    .grid-widget h3 { margin-top: 0; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem; }
+    .grid-widget ul { list-style: none; padding: 0; }
+    .grid-widget li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; }
+    .grid-widget li:last-child { border-bottom: none; }
+    
+    .program-list ol { padding-left: 20px; }
+    .payment-info { background-color: #eaf7ff; border-left: 5px solid #007bff; }
+    .disclaimer { font-style: italic; color: #666; text-align: center; margin-top: 2rem; font-size: 0.9em; }
+</style>
+{% endblock %}
+
+{% block main_content %}
+<div class="quote-detail-container">
+    <div class="quote-header">
+        <h2>Hola, {{ quote.client_name }}</h2>
+        <p>Este es el detalle de tu cotización con código:</p>
+        <span class="tracking-code">{{ quote.tracking_code }}</span>
+        <div>
+            <span class="quote-status status-{{ quote.status }}">{{ quote.get_status_display }}</span>
+        </div>
+    </div>
+
+    <div class="grid-container">
+        <div class="grid-widget">
+            <h3>Detalles del Evento</h3>
+            <ul>
+                <li><strong>Evento:</strong> <span>{{ quote.event_type }}</span></li>
+                {% if quote.event_date %}
+                <li><strong>Fecha:</strong> <span>{{ quote.event_date|date:"d \d\e F, Y" }} a las {{ quote.event_time|time:"H:i" }}</span></li>
+                {% endif %}
+                <li><strong>Ubicación:</strong> <span>{{ quote.get_location_type_display }}</span></li>
+                {% if quote.event_address %}
+                <li><strong>Dirección:</strong> <span>{{ quote.event_address }}</span></li>
+                {% endif %}
+                <li><strong>Recinto:</strong> <span>{% if quote.is_exterior %}Exterior{% else %}Interior{% endif %}</span></li>
+            </ul>
+        </div>
+        <div class="grid-widget">
+            <h3>Detalles del Ensamble</h3>
+             <ul>
+                {% if quote.package %}
+                <li><strong>Paquete:</strong> <span>{{ quote.package.name }}</span></li>
+                <li><strong>Descripción:</strong> <span>{{ quote.package.description|default:"-" }}</span></li>
+                <li><strong>Músicos:</strong> <span>{{ quote.package.num_singers }} Voces, {{ quote.package.num_instrument_players }} Músicos</span></li>
+                {% else %}
+                <li><strong>Músicos:</strong> <span>{{ quote.num_voices }} Voces, {{ quote.num_musicians }} Músicos</span></li>
+                {% endif %}
+                <li><strong>Vestimenta:</strong> <span>{{ quote.dress_code }}</span></li>
+             </ul>
+        </div>
+        <div class="grid-widget">
+            <h3>Resumen de Costos</h3>
+            <ul>
+                <li><strong>Subtotal:</strong> <span>${{ quote.total_cost|add:quote.discount|floatformat:2 }}</span></li>
+                {% if quote.discount > 0 %}
+                <li style="color: green;"><strong>Descuento:</strong> <span>- ${{ quote.discount|floatformat:2 }}</span></li>
+                {% endif %}
+                <li style="font-weight: bold; border-top: 1px solid #ccc; padding-top: 10px;"><strong>Total:</strong> <span>${{ quote.total_cost|floatformat:2 }} MXN</span></li>
+                
+                <li style="margin-top: 1rem;"><strong>Monto Pagado:</strong> <span>${{ quote.paid_amount|floatformat:2 }}</span></li>
+                <li style="font-weight: bold;"><strong>Saldo Pendiente:</strong> <span>${{ quote.total_cost|add:quote.paid_amount|add:"-0"|stringformat:"-.2f" }} MXN</span></li>
+
+            </ul>
+        </div>
+
+        {% if program_items %}
+        <div class="grid-widget program-list">
+            <h3>Programa Musical</h3>
+            <ol>
+                {% for item in program_items %}
+                <li>{{ item.repertoire_piece.nombre }} - <em>{{ item.repertoire_piece.compositor|default:"N/A" }}</em></li>
+                {% endfor %}
+            </ol>
+        </div>
+        {% endif %}
+
+        {% if show_payment_info %}
+        <div class="grid-widget payment-info">
+            <h3>Información para Pago</h3>
+            <p>Para confirmar su evento, favor de realizar un anticipo del 50% (${{ quote.total_cost|div:2|floatformat:2 }} MXN) por alguno de los siguientes medios:</p>
+            <h5>Transferencia Bancaria</h5>
+            <ul>
+                <li><strong>Banco:</strong> BBVA Bancomer</li>
+                <li><strong>CLABE:</strong> 012345678901234567</li>
+                <li><strong>A nombre de:</strong> Nombre del Titular</li>
+                <li><strong>Concepto:</strong> {{ quote.tracking_code }}</li>
+            </ul>
+            <h5>Pago en Efectivo</h5>
+            <p>Para pagos en efectivo, por favor <a href="{% url 'main:contacto' %}">contáctenos</a> para coordinar la entrega.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="disclaimer">
+        <p>Esta cotización es válida por 15 días. Para confirmar la disponibilidad y contratar, por favor contáctanos.</p>
+    </div>
+</div>
+{% endblock %}

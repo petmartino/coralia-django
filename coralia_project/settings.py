@@ -129,7 +129,7 @@ MIDDLEWARE = [
 ADMIN_REORDER = (
     # Group all quote-related models together
     {'app': 'quotes', 'label': 'Cotizaciones y Programas',
-     'models': ('quotes.Quote', 'quotes.EventType', 'quotes.Program')
+     'models': ('quotes.Quote', 'quotes.EventType', 'quotes.Program', 'quotes.Package')
     },
     # Group main content models
     {'app': 'main', 'label': 'Contenido Principal',
@@ -143,32 +143,34 @@ ADMIN_REORDER = (
     {'app': 'auth', 'label': 'Autorización', 'models': ('auth.User', 'auth.Group')},
 )
 
-# DJANGO-REQUEST CONFIGURATION
-# ------------------------------------------------------------------------------
 
-# A list of paths to ignore. Django-request will not store requests for these paths.
-IGNORE_PATHS = (
-    r'^admin/',
-    r'^static/',
-    r'^media/',
-)
+# NEW: This forces the reordering logic to apply on every admin page.
+ADMIN_REORDER_FE_ONLY = False 
 
-# A list of user agents to ignore.
-IGNORE_USER_AGENTS = (
-    r'.*bingbot.*',
-    r'.*Googlebot.*',
-    r'.*AhrefsBot.*',
-    r'.*SemrushBot.*',
-    r'.*YandexBot.*',
-    r'.*DotBot.*',
-)
+REQUEST_CONFIG = {
+    # A list of paths to ignore. Django-request will not store requests for these paths.
+    'IGNORE_PATHS': [
+        r'^admin/',
+        r'^static/',
+        r'^media/',
+        r'^favicon\.ico$',
+    ],
 
-# A list of usernames to ignore.
-# Set to an empty tuple to log requests from all users, including staff.
-IGNORE_USERNAME = ()
+    # A list of user agents to ignore.
+    'IGNORE_USER_AGENTS': [
+        r'.*bingbot.*',
+        r'.*Googlebot.*',
+        r'.*AhrefsBot.*',
+        r'.*SemrushBot.*',
+        r'.*YandexBot.*',
+        r'.*DotBot.*',
+    ],
+    # A list of usernames to ignore.
+    'IGNORE_USERNAME': [], # An empty list logs staff, which is what you have.
 
-# Only log requests that result in an error.
-ONLY_ERRORS = False
+    # Only log requests that result in an error.
+    'ONLY_ERRORS': False,
 
-# Don't log AJAX requests.
-IGNORE_AJAX = True
+    # Don't log AJAX requests.
+    'IGNORE_AJAX': True,
+}

@@ -51,8 +51,9 @@ class Program(models.Model):
         return self.name or f"Programa sin cotización asignada"
 
     class Meta:
-        # UPDATED: Order by name or a manual order field, not a magical one
-        ordering = ['name']
+        # THIS IS THE CRITICAL FIX for the ValueError.
+        # It tells the admin to use the integer 'order' field for sorting.
+        ordering = ['order']
 
 
 class ProgramItem(models.Model):

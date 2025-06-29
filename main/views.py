@@ -3,6 +3,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from .models import RepertoirePiece
+from quotes.models import EventType
 
 def index(request):
     return render(request, 'main/index.html')
@@ -20,7 +21,15 @@ def politica(request):
     return render(request, 'main/politica.html')
 
 def servicios(request):
-    return render(request, 'main/servicios.html')
+    # Fetch data for the template
+    event_types = EventType.objects.all().order_by('order')
+    popular_pieces = RepertoirePiece.objects.filter(tags__name__icontains='popular').order_by('nombre')[:10]
+
+    context = {
+        'event_types': event_types,
+        'popular_pieces': popular_pieces,
+    }
+    return render(request, 'main/servicios.html', context)
 
 def videos(request):
     return render(request, 'main/videos.html')

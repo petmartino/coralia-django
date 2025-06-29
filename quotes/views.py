@@ -2,15 +2,13 @@
 
 import uuid
 import base58
-import math
-from datetime import datetime
-
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from .models import Quote
+from .models import Quote, Program, Package # Import Package
 from .forms import QuoteForm, TrackerForm
+from .utils import calculate_pricing # <-- Import our new function
 
 def generate_tracking_code():
     while True:
@@ -24,129 +22,85 @@ def cotizador_view(request):
         if form.is_valid():
             data = form.cleaned_data
 
-            # ... (PRICING VARIABLES AND CALCULATIONS REMAIN THE SAME) ...
-            PRICE_MUSICIAN_BASE_WEEKDAY = 800.0
-            PRICE_MUSICIAN_BASE_WEEKEND = 900.0
-            PRICE_GALA_ATTIRE_PER_PERSON = 250.0
-            PRICE_PRIME_TIME_PER_PERSON = 100.0
-            PRICE_DISTANCE_PER_HOUR_PER_PERSON = 300.0
-            
-            FEE_MANAGER_BASE_REGULAR = 200.0
-            FEE_MANAGER_BASE_FUNERAL = 100.0
-            FEE_MANAGER_PER_PERSON = 50.0
-            FEE_MANAGER_EXTERIOR = 200.0
-            FEE_MANAGER_BODA = 200.0
-            FEE_CAR_PER_CAR = 350.0
-            
-            num_voices = int(data.get('num_voices', 1))
-            num_musicians = int(data.get('num_musicians', 1))
-            total_people = num_voices + num_musicians
-            breakdown = {}
+            # --- 1. Calculate pricing using the centralized function ---
+            pricing_breakdown = calculate_pricing(data)
 
-            event_date = data.get('event_date')
-            
-            # Use the name of the EventType object for logic
-            event_type_obj = data.get('event_type')
-            event_type_name = event_type_obj.name if event_type_obj else ''
-
-            is_weekend = False
-            weekday = -1
-            if event_date:
-                weekday = event_date.weekday()
-                if weekday >= 4: is_weekend = True
-            
-            musician_base_rate = PRICE_MUSICIAN_BASE_WEEKEND if is_weekend else PRICE_MUSICIAN_BASE_WEEKDAY
-            if event_type_name in ["Misas de cuerpo presente", "Aniversarios luctuosos", "Triduo"]:
-                musician_base_rate = PRICE_MUSICIAN_BASE_WEEKDAY
-            
-            breakdown['cost_musicians_base'] = musician_base_rate * total_people
-            per_person_payout = musician_base_rate
-
-            if data.get('dress_code') == "Gala":
-                per_person_payout += PRICE_GALA_ATTIRE_PER_PERSON
-            breakdown['cost_gala_fee'] = (per_person_payout - musician_base_rate) * total_people
-
-            event_time_obj = data.get('event_time')
-            is_prime_time = False
-            if event_time_obj and is_weekend and weekday in [4, 5]:
-                if event_time_obj >= datetime.strptime("17:00", "%H:%M").time() and event_time_obj <= datetime.strptime("20:00", "%H:%M").time():
-                    is_prime_time = True
-                    per_person_payout += PRICE_PRIME_TIME_PER_PERSON
-            breakdown['cost_primetime_fee'] = PRICE_PRIME_TIME_PER_PERSON * total_people if is_prime_time else 0.0
-
-            distance_hours = 0
-            location_type = data.get('location_type')
-            if location_type == "1_hora": distance_hours = 1
-            elif location_type == "2_horas": distance_hours = 2
-            elif location_type == "3_horas": distance_hours = 3
-            per_person_payout += distance_hours * PRICE_DISTANCE_PER_HOUR_PER_PERSON
-            breakdown['cost_distance_fee'] = (distance_hours * PRICE_DISTANCE_PER_HOUR_PER_PERSON) * total_people
-
-            rounded_per_person_payout = math.ceil(per_person_payout / 50.0) * 50.0
-            breakdown['total_musician_payout_rounded'] = rounded_per_person_payout * total_people
-
-            if event_type_name in ["Misas de cuerpo presente", "Triduo"]:
-                breakdown['cost_manager_base'] = FEE_MANAGER_BASE_FUNERAL
-            else:
-                breakdown['cost_manager_base'] = FEE_MANAGER_BASE_REGULAR
-            breakdown['cost_manager_per_person'] = FEE_MANAGER_PER_PERSON * total_people
-            breakdown['cost_manager_exterior'] = FEE_MANAGER_EXTERIOR if data.get('is_exterior') else 0.0
-            breakdown['cost_manager_boda'] = FEE_MANAGER_BODA if event_type_name == "Bodas" else 0.0
-
-            num_cars = math.ceil(total_people / 3.0) if distance_hours > 0 and total_people > 0 else 0
-            breakdown['cost_car_fee'] = num_cars * FEE_CAR_PER_CAR
-
-            total_cost = sum(breakdown.values())
-
-            # --- SAVE TO DATABASE ---
+            # --- 2. Create the Quote instance ---
             new_quote = Quote(
                 tracking_code=generate_tracking_code(),
                 event_date=data.get('event_date'),
                 event_time=data.get('event_time'),
-                event_type=event_type_obj, # Pass the model instance directly
+                event_type=data.get('event_type'),
+                package=data.get('package'),
                 location_type=data.get('location_type'),
+                event_address=data.get('event_address'),
                 is_exterior=data.get('is_exterior', False),
-                num_voices=num_voices,
-                num_musicians=num_musicians,
+                num_voices=int(data.get('num_voices', 1)),
+                num_musicians=int(data.get('num_musicians', 1)),
                 dress_code=data.get('dress_code'),
                 client_name=data.get('client_name'),
                 client_phone=data.get('client_phone'),
                 client_email=data.get('client_email'),
                 contact_method=data.get('contact_method'),
                 comments=data.get('comments'),
-                **breakdown,
-                total_cost=total_cost,
-                # New fields will use their default values: status='UNCONFIRMED', created_by_source='WEBSITE'
+                **pricing_breakdown # Unpack all calculated values into the model
             )
+            
+            # --- If a program is needed, create an empty one ---
+            if not new_quote.program:
+                program = Program.objects.create(name=f"Programa para {new_quote.tracking_code}")
+                new_quote.program = program
+
             new_quote.save()
 
-            # --- 5. SEND CONFIRMATION EMAIL (no changes here) ---
+            # --- 3. Send email (unchanged) ---
             if new_quote.client_email:
                 email_context = {'quote': new_quote}
                 html_message = render_to_string('emails/quote_confirmation.html', email_context)
                 plain_message = render_to_string('emails/quote_confirmation.txt', email_context)
-
                 send_mail(
                     subject=f'Confirmación de Cotización Coralia: #{new_quote.tracking_code}',
                     message=plain_message,
                     from_email=None,
-                    recipient_list=['pedromartinezdelpaso@gmail.com'],
+                    recipient_list=['pedromartinezdelpaso@gmail.com'], # Or settings.EMAIL_HOST_USER
                     html_message=html_message,
                 )
 
-            # The redirect prevents form resubmission on 'back' or 'refresh'
+            # Redirect to the summary/preview page
             return redirect(reverse('quotes:ver_cotizacion', args=[new_quote.tracking_code]))
     else:
         form = QuoteForm()
 
     tracker_form = TrackerForm()
-    return render(request, 'quotes/cotizador.html', {'form': form, 'tracker_form': tracker_form})
+    # Also pass available packages to the template
+    packages = Package.objects.filter(is_active=True)
+    return render(request, 'quotes/cotizador.html', {'form': form, 'tracker_form': tracker_form, 'packages': packages})
 
 
 def ver_cotizacion_view(request, code):
+    """
+    This is the simple confirmation/preview page shown immediately after creating a quote.
+    """
     code = code.lower()
     quote = get_object_or_404(Quote, tracking_code=code)
     return render(request, 'quotes/ver_cotizacion.html', {'quote': quote})
+
+
+# NEW VIEW for the full detail page
+def cotizacion_detail_view(request, code):
+    """
+    This is the full detail page for a tracked quote, showing program, payment info etc.
+    It can be the same as ver_cotizacion or a different template. Let's make a new one.
+    """
+    code = code.lower()
+    quote = get_object_or_404(Quote.objects.select_related('program'), tracking_code=code)
+    # Add payment details or contract info to context if needed
+    context = {
+        'quote': quote,
+        'program_items': quote.program.items.select_related('repertoire_piece').all() if quote.program else [],
+        'show_payment_info': quote.status == 'CONFIRMED', # Example logic
+    }
+    return render(request, 'quotes/cotizacion_detail.html', context)
 
 
 def rastrear_cotizacion_view(request):
@@ -156,6 +110,9 @@ def rastrear_cotizacion_view(request):
             code = form.cleaned_data.get('tracking_code').lower()
             quote = Quote.objects.filter(tracking_code=code).first()
             if quote:
-                return redirect(reverse('quotes:ver_cotizacion', args=[code]))
-    
+                # Redirect to the NEW detail view after tracking
+                return redirect(reverse('quotes:cotizacion_detail', args=[code]))
+
+    # If tracking fails, redirect back to the cotizador page
+    # You might want to add a message here using Django's messaging framework
     return redirect(reverse('quotes:cotizador'))
