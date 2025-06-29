@@ -147,30 +147,13 @@ ADMIN_REORDER = (
 # NEW: This forces the reordering logic to apply on every admin page.
 ADMIN_REORDER_FE_ONLY = False 
 
-REQUEST_CONFIG = {
-    # A list of paths to ignore. Django-request will not store requests for these paths.
-    'IGNORE_PATHS': [
-        r'^admin/',
-        r'^static/',
-        r'^media/',
-        r'^favicon\.ico$',
-    ],
 
-    # A list of user agents to ignore.
-    'IGNORE_USER_AGENTS': [
-        r'.*bingbot.*',
-        r'.*Googlebot.*',
-        r'.*AhrefsBot.*',
-        r'.*SemrushBot.*',
-        r'.*YandexBot.*',
-        r'.*DotBot.*',
-    ],
-    # A list of usernames to ignore.
-    'IGNORE_USERNAME': [], # An empty list logs staff, which is what you have.
-
-    # Only log requests that result in an error.
-    'ONLY_ERRORS': False,
-
-    # Don't log AJAX requests.
-    'IGNORE_AJAX': True,
-}
+REQUEST_IGNORE_PATHS = (
+    r'^admin/',
+)
+REQUEST_IGNORE_USER_AGENTS = (
+    r'^$', # ignore requests with no user agent string set
+    r'Googlebot',
+    r'Baiduspider',
+)
+REQUEST_LOG_USER = False
