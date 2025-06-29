@@ -1,3 +1,5 @@
+# main/views.py
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from .models import RepertoirePiece
@@ -23,14 +25,25 @@ def servicios(request):
 def videos(request):
     return render(request, 'main/videos.html')
 
+# --- VERIFY THIS VIEW ---
 def repertorio_list(request):
-    # This will be empty for now, until we load the data in Step 4
+    # This query gets all the pieces.
     pieces = RepertoirePiece.objects.all().order_by('nombre')
-    return render(request, 'main/repertorio_list.html', {'pieces': pieces})
+    # The context dictionary MUST use the key 'pieces' to match your template.
+    context = {
+        'pieces': pieces
+    }
+    return render(request, 'main/repertorio_list.html', context)
 
+# --- VERIFY THIS VIEW ---
 def repertorio_detail(request, pk):
+    # This gets a single piece using the primary key (pk) from the URL.
     piece = get_object_or_404(RepertoirePiece, pk=pk)
-    return render(request, 'main/repertorio_detail.html', {'piece': piece})
+    # The context dictionary MUST use the key 'piece' to match your template.
+    context = {
+        'piece': piece
+    }
+    return render(request, 'main/repertorio_detail.html', context)
 
 def sitemap_view(request):
     """Generates a dynamic sitemap.xml."""
@@ -48,4 +61,5 @@ def sitemap_view(request):
         pages.append({
             'loc': request.build_absolute_uri(reverse('main:repertorio_detail', args=[piece.id]))
         })
+    # Note: Ensure you have a 'main/sitemap_template.xml' file or this will error.
     return render(request, 'main/sitemap_template.xml', {'pages': pages}, content_type='application/xml')
