@@ -10,30 +10,30 @@ SECRET_KEY = 'django-insecure-dummy-key-for-local-dev-change-later'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['musicaparamisas.com', 'www.musicaparamisas.com', '198.58.99.196', 'new.musicaparamisas.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'musicaparamisas.com', 'www.musicaparamisas.com', '198.58.99.196', 'new.musicaparamisas.com']
 
 # (Keep all existing content)
 # ...
 
-# Application definition
 INSTALLED_APPS = [
+    'admin_reorder', # <-- MUST BE BEFORE 'django.contrib.admin'
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # --- ADDED APP ---
+    'request',
     # Our local apps
     'main.apps.MainConfig',
-    'quotes.apps.QuotesConfig', # <-- ADD THIS LINE
-    #'analytics.apps.AnalyticsConfig', # <-- ADD THIS LINE
-    'user_visit',         
-    'adminsortable2',  
+    'quotes.apps.QuotesConfig',
+    'analytics.apps.AnalyticsConfig', # <-- UNCOMMENT THIS
+    'user_visit',
+    'adminsortable2',
 ]
-
 # (Keep all other content the same)
 # ...
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -42,8 +42,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    #'analytics.middleware.VisitTrackingMiddleware',
+    # --- ADDED MIDDLEWARE ---
+    'request.middleware.RequestMiddleware',
+    'analytics.middleware.VisitTrackingMiddleware', # <-- UNCOMMENT THIS
     'user_visit.middleware.UserVisitMiddleware',
+    # --- REORDER admin_reorder middleware
+    'admin_reorder.middleware.ModelAdminReorder',
 ]
 
 ROOT_URLCONF = 'coralia_project.urls'
@@ -106,3 +110,35 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # --- ADDED MIDDLEWARE ---
+    'request.middleware.RequestMiddleware',
+    'analytics.middleware.VisitTrackingMiddleware', # <-- UNCOMMENT THIS
+    'user_visit.middleware.UserVisitMiddleware',
+    # --- REORDER admin_reorder middleware
+    'admin_reorder.middleware.ModelAdminReorder',
+]
+
+ADMIN_REORDER = (
+    # Group all quote-related models together
+    {'app': 'quotes', 'label': 'Cotizaciones y Programas',
+     'models': ('quotes.Quote', 'quotes.EventType', 'quotes.Program')
+    },
+    # Group main content models
+    {'app': 'main', 'label': 'Contenido Principal',
+     'models': ('main.RepertoirePiece', 'main.Tag')
+    },
+    # Group analytics models
+    {'app': 'analytics', 'label': 'Estadísticas del Sitio',
+     'models': ('analytics.Visit', 'request.Request')
+    },
+    # Keep auth models together
+    {'app': 'auth', 'label': 'Autorización', 'models': ('auth.User', 'auth.Group')},
+)

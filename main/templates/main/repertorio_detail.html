@@ -1,15 +1,16 @@
 <!-- templates/repertorio_detail.html -->
-{% extends "base.html" %}
+{% extends "main/base.html" %}
 
 {% block title %}{{ piece.nombre }} - Repertorio{% endblock %}
 
 {% block main_content %}
 <div class="container">
     {% block content %}
-    <p><a href="{{ url_for('main.repertorio_list') }}">← Volver a la lista del Repertorio</a></p>
-    
+    {# --- FIXED URL --- #}
+    <p><a href="{% url 'main:repertorio_list' %}">← Volver a la lista del Repertorio</a></p>
+
     <h1>{{ piece.nombre }}</h1>
-    <p><strong>Compositor:</strong> {{ piece.compositor }}</p>
+    <p><strong>Compositor:</strong> {{ piece.compositor|default:"No especificado" }}</p> {# Added default #}
     {% if piece.tonalidad %}
     <p><strong>Tonalidad:</strong> {{ piece.tonalidad }}</p>
     {% endif %}
@@ -17,52 +18,49 @@
     <p><strong>Comentarios:</strong> {{ piece.comentarios }}</p>
     {% endif %}
 
-
-    {# --- NEW VIDEO SECTION --- #}
     {% if piece.video_url %}
     <div class="video-container">
         <iframe width="560" height="315" src="{{ piece.video_url }}" title="YouTube video player for {{ piece.nombre }}"
-            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen></iframe>
     </div>
     <hr>
     {% endif %}
 
     {% if piece.letra_original %}
-        <h3>Letra</h3>
+    <h3>Letra</h3>
+    <style>
+        .lyrics-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2em;
+        }
 
-        <style>
-            .lyrics-container {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 2em;
-            }
-            .lyrics-column {
-                flex: 1;
-                min-width: 300px;
-                white-space: pre-wrap; /* This preserves line breaks */
-                font-family: monospace;
-            }
-        </style>
-
-        <div class="lyrics-container">
-            <div class="lyrics-column">
-                <h4>Original</h4>
-                <p>{{ piece.letra_original }}</p>
-            </div>
-
-            {% if piece.letra_traducida %}
-            <div class="lyrics-column">
-                <h4>Traducción al Español</h4>
-                <p>{{ piece.letra_traducida }}</p>
-            </div>
-            {% endif %}
+        .lyrics-column {
+            flex: 1;
+            min-width: 300px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+    <div class="lyrics-container">
+        <div class="lyrics-column">
+            <h4>Original</h4>
+            <p>{{ piece.letra_original }}</p>
         </div>
+
+        {% if piece.letra_traducida %}
+        <div class="lyrics-column">
+            <h4>Traducción al Español</h4>
+            <p>{{ piece.letra_traducida }}</p>
+        </div>
+        {% endif %}
+    </div>
     {% else %}
-        <p>Esta pieza es principalmente instrumental y no tiene letra registrada.</p>
+    <p>Esta pieza es principalmente instrumental y no tiene letra registrada.</p>
     {% endif %}
 
-    
-{% endblock %}
+    {% endblock %}
 </div>
 {% endblock %}

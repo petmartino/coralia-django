@@ -1,25 +1,10 @@
+# quotes/forms.py
+
 from django import forms
+from .models import EventType # <-- ADD THIS IMPORT
 
 class QuoteForm(forms.Form):
     # Step 1 Fields
-    EVENT_TYPE_CHOICES = [
-        ('Bodas', 'Bodas'),
-        ('Misas (música para misas ordinarias)', 'Misas (música para misas ordinarias)'),
-        ('Aniversarios de matrimonio', 'Aniversarios de matrimonio'),
-        ('Bautizos', 'Bautizos'),
-        ('XV años', 'XV años'),
-        ('Graduaciones', 'Graduaciones'),
-        ('Misas de confirmación', 'Misas de confirmación'),
-        ('Cumpleaños', 'Cumpleaños'),
-        ('Misas de cuerpo presente', 'Misas de cuerpo presente'),
-        ('Aniversarios luctuosos', 'Aniversarios luctuosos'),
-        ('Triduo', 'Triduo'),
-        ('Ceremonias civiles de matrimonio', 'Ceremonias civiles de matrimonio'),
-        ('Amenizaciones en cena y celebraciones privadas', 'Amenizaciones en cena y celebraciones privadas'),
-        ('Rosarios cantados', 'Rosarios cantados'),
-        ('Primera Comunión y Confirmación', 'Primera Comunión y Confirmación'),
-        ('Otro', 'Otro'),
-    ]
     LOCATION_CHOICES = [
         ('dentro_periferico', 'Dentro del periférico de Guadalajara'),
         ('fuera_periferico', 'Fuera del periférico (ZMG)'),
@@ -27,7 +12,14 @@ class QuoteForm(forms.Form):
         ('2_horas', 'A 2 horas de Guadalajara'),
         ('3_horas', 'A más de 3 horas de Guadalajara'),
     ]
-    event_type = forms.ChoiceField(choices=EVENT_TYPE_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
+    
+    # --- THIS FIELD IS NOW A MODELCHOICEFIELD ---
+    event_type = forms.ModelChoiceField(
+        queryset=EventType.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label="Tipo de Evento"
+    )
+
     event_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
     event_time = forms.TimeField(required=False, widget=forms.TimeInput(attrs={'type': 'time'}))
     location_type = forms.ChoiceField(choices=LOCATION_CHOICES, widget=forms.Select())
