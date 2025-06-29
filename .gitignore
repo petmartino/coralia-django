@@ -1,25 +1,24 @@
-# Python
+# .gitignore
+
+# Byte-compiled / optimized / C extensions
 __pycache__/
-*.pyc
-.Python
-venv/
+*.py[cod]
+*$py.class
+
+# Environment
 .env
-.pytest_cache/
+venv/
+env/
+
+# Django static files
+# THIS IS THE MOST IMPORTANT LINE FOR YOUR PROBLEM
+staticfiles/
+media/
 
 # Database
-*.db
-*.sqlite3
-instance/
+db.sqlite3
+old_data.db
 
-# Flask-Migrate
-# migrations/versions/
-# If your Alembic environment config (env.py) isn't in migrations/
-# but that's less common.
-# migrations/env.py # Only ignore if you don't want env.py in git, usually you do.
-
-# Editor/IDE files
-.vscode/
-.idea/
-*.swp
-*~
+# Other
 .DS_Store
+*.log
