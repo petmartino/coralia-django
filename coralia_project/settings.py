@@ -142,3 +142,33 @@ ADMIN_REORDER = (
     # Keep auth models together
     {'app': 'auth', 'label': 'Autorización', 'models': ('auth.User', 'auth.Group')},
 )
+
+# DJANGO-REQUEST CONFIGURATION
+# ------------------------------------------------------------------------------
+REQUEST_TRACK_IP = True
+REQUEST_IGNORE_AJAX = True
+REQUEST_IGNORE_STATIC = True
+
+# A list of paths to ignore. You can add more if needed.
+REQUEST_IGNORE_PATHS = (
+    '/admin/',
+    '/static/',
+    '/media/',
+    '/favicon.ico',
+)
+
+# A list of common bot user agents to ignore.
+REQUEST_IGNORE_USER_AGENTS = (
+    r'bingbot',
+    r'Googlebot',
+    r'AhrefsBot',
+    r'SemrushBot',
+    r'YandexBot',
+    r'DotBot',
+)
+
+# THIS IS THE MOST IMPORTANT SETTING FOR YOUR PROBLEM:
+# By default, django-request ignores authenticated staff and superusers.
+# Setting it to an empty list [] tells it to LOG EVERYONE.
+# You can later change this to ['staff', 'superuser'] to only log anonymous users.
+REQUEST_IGNORE_USERS = []
