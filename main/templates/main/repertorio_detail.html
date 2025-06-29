@@ -5,12 +5,11 @@
 
 {% block main_content %}
 <div class="container">
-    {% block content %}
-    {# --- FIXED URL --- #}
+
     <p><a href="{% url 'main:repertorio_list' %}">← Volver a la lista del Repertorio</a></p>
 
     <h1>{{ piece.nombre }}</h1>
-    <p><strong>Compositor:</strong> {{ piece.compositor|default:"No especificado" }}</p> {# Added default #}
+    <p><strong>Compositor:</strong> {{ piece.compositor|default:"No especificado" }}</p>
     {% if piece.tonalidad %}
     <p><strong>Tonalidad:</strong> {{ piece.tonalidad }}</p>
     {% endif %}
@@ -61,6 +60,5 @@
     <p>Esta pieza es principalmente instrumental y no tiene letra registrada.</p>
     {% endif %}
 
-    {% endblock %}
 </div>
-{% endblock %}
+{% endblock main_content %}
