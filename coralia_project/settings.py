@@ -79,7 +79,7 @@ DATABASES = {
 }
 
 # Internationalization
-LANGUAGE_CODE = 'en-US'
+LANGUAGE_CODE = 'es-MX'
 TIME_ZONE = 'America/Mexico_City'
 USE_I18N = True
 USE_TZ = True

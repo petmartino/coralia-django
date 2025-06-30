@@ -69,7 +69,7 @@ def cotizacion_detail_view(request, code):
     quote = get_object_or_404(Quote.objects.select_related('package', 'event_type'), tracking_code=code)
     context = {
         'quote': quote,
-        'show_payment_info': quote.status in ['UNCONFIRMED', 'CONFIRMED'],
+        'show_payment_info': quote.status in ['CONFIRMED'],
     }
     return render(request, 'quotes/cotizacion_detail.html', context)
 

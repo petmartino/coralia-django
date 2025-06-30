@@ -126,7 +126,8 @@
             <ul>
                 <li><strong>Evento:</strong> <span>{{ quote.event_type }}</span></li>
                 {% if quote.event_date %}
-                <li><strong>Fecha:</strong> <span>{{ quote.event_date|date:"d \d\e F, Y" }} a las {{quote.event_time|time:"H:i" }}</span></li>
+                <li><strong>Fecha:</strong> <span>{{ quote.event_date|date:"d \d\e F, Y" }} a las
+                        {{quote.event_time|time:"H:i" }}</span></li>
                 {% endif %}
                 <li><strong>Ubicación:</strong> <span>{{ quote.get_location_type_display }}</span></li>
                 {% if quote.event_address %}
@@ -141,8 +142,7 @@
                 {% if quote.package %}
                 <li><strong>Paquete:</strong> <span>{{ quote.package.name }}</span></li>
                 <li><strong>Descripción:</strong> <span>{{ quote.package.description|default:"-" }}</span></li>
-                <li><strong>Músicos:</strong> <span>{{ quote.package.num_singers }} Voces, {{
-                        quote.package.num_instrument_players }} Músicos</span></li>
+                <li><strong>Músicos:</strong> <span>{{ quote.package.num_singers }} Voces, {{ quote.package.num_instrument_players }} Músicos</span></li>
                 {% else %}
                 <li><strong>Músicos:</strong> <span>{{ quote.num_voices }} Voces, {{ quote.num_musicians }}
                         Músicos</span></li>
@@ -160,11 +160,13 @@
                 </li>
                 {% endif %}
                 <li style="font-weight: bold; border-top: 1px solid #ccc; padding-top: 10px;"><strong>Total:</strong>
-                    <span>${{ quote.total_cost|floatformat:2 }} MXN</span></li>
+                    <span>${{ quote.total_cost|floatformat:2 }} MXN</span>
+                </li>
                 <li style="margin-top: 1rem;"><strong>Monto Pagado:</strong> <span>${{ quote.paid_amount|floatformat:2
                         }}</span></li>
+                {# --- CORRECTED CALCULATION --- #}
                 <li style="font-weight: bold;"><strong>Saldo Pendiente:</strong> <span>${{
-                        quote.total_cost|add:-quote.paid_amount|floatformat:2 }} MXN</span></li>
+                        quote.outstanding_balance|floatformat:2 }} MXN</span></li>
             </ul>
         </div>
 

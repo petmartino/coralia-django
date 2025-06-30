@@ -1,18 +1,18 @@
 ##TODO 
-- Fix crear cotización URGE.
 
 - Agregar * required y alguna validacion en cotización
 - fix frontend cotizador radios
 - The interior/exterior radio buttons should be presented on the same line.
-- Tags en español, todo en español
+- Tags en español, admin  en español
+- Mostrar matemáticas en quotes, poner historial hasta abajo en quotes...
+- Mostrar detail information disabled, 
+- Mostrar payment information 
 
-
-- Program templates primario, orden...  Template pieces tmb con orden. 
-
-- Custom program 
 
 
 # V 2 - PAGOS / CONTRATOS / EMAILS 
+- Program templates primario, orden...  Template pieces tmb con orden. 
+- Custom program 
 - NO TRACKEAR FAVICON
 - PERMITIR ARMAR LA PLANTILLA DE MÚSICOS EN QUOTE
 - CUSTOM PROGRAM FROM PROGRAM TEMPLATES
@@ -26,3 +26,6 @@
 - MAILS DESDE BOTÓN (ENVIAR CORREO DE CONFIRMACIÓN)
 - DIRECCIÓN DEL EVENTO esta debe setear ubicación 
 - Contact methods en modelo (más no en admin)
+
+
+

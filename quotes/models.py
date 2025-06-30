@@ -37,6 +37,7 @@ class Quote(models.Model):
     DRESS_CODE_CHOICES = [('Formal-Casual', 'Formal-Casual'), ('Formal', 'Formal'), ('Gala', 'Gala')]
     CONTACT_METHOD_CHOICES = [('WhatsApp', 'WhatsApp'), ('Llamada Telefónica', 'Llamada Telefónica'), ('Correo Electrónico', 'Correo Electrónico')]
     
+    # ... all other fields are correct ...
     tracking_code = models.CharField(max_length=12, unique=True, db_index=True, blank=True)
     event_type = models.ForeignKey(EventType, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("Event Type"))
     package = models.ForeignKey(Package, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Paquete Seleccionado")
@@ -76,12 +77,20 @@ class Quote(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self): return f"Cotización {self.tracking_code or '(sin código)'} para {self.client_name or 'cliente'}"
+    
     @property
     def fifty_percent_deposit(self): return self.total_cost / 2 if self.total_cost else 0
+    
     @property
     def total_people(self):
         if self.package: return self.package.num_singers + self.package.num_instrument_players
         return self.num_voices + self.num_musicians
+
+    # --- NEW PROPERTY ---
+    @property
+    def outstanding_balance(self):
+        return self.total_cost - self.paid_amount
+
     class Meta: ordering = ['-created_at']
 
 class QuoteHistory(models.Model):
