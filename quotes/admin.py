@@ -1,12 +1,10 @@
 # quotes/admin.py
 
 from django.contrib import admin, messages
-from django import forms
-from django.db import models
 from .models import Quote, Program, ProgramItem, EventType, Package, QuoteHistory
 from .views import generate_tracking_code
 
-# No more adminsortable2 imports
+# Completely removed all ties to adminsortable2 for programs
 
 @admin.register(Package)
 class PackageAdmin(admin.ModelAdmin):
@@ -17,8 +15,8 @@ class PackageAdmin(admin.ModelAdmin):
 
 @admin.register(EventType)
 class EventTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'order', 'is_funeral_type', 'has_wedding_fee', 'manager_base_fee')
-    list_editable = ('order', 'is_funeral_type', 'has_wedding_fee', 'manager_base_fee')
+    list_display = ('name', 'order')
+    list_editable = ('order',)
 
 class ProgramItemInline(admin.TabularInline):
     model = ProgramItem
@@ -42,8 +40,8 @@ def clone_programs(modeladmin, request, queryset):
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
     list_display = ('name', 'order', 'piece_count')
-    # THIS IS THE FIX: 'name' is the link to the detail page, so only 'order' can be directly editable in the list.
-    list_editable = ('order',) 
+    list_editable = ('order',)  # 'name' is the link by default
+    list_display_links = ('name',) # Explicitly make name the link
     search_fields = ['name']
     inlines = [ProgramItemInline]
     actions = [clone_programs]
@@ -59,56 +57,20 @@ class QuoteHistoryInline(admin.TabularInline):
     can_delete = False
     def has_add_permission(self, request, obj=None): return False
 
-class QuoteAdminForm(forms.ModelForm):
-    class Meta:
-        model = Quote
-        fields = "__all__"
-        widgets = { 'event_address': forms.Textarea(attrs={'rows': 4}), }
-
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
-    form = QuoteAdminForm
-    list_display = ('tracking_code', 'client_name', 'event_type', 'status', 'event_date', 'total_cost', 'paid_amount', 'balance_due')
-    list_filter = ('status', 'event_type', 'event_date', 'created_by_source')
-    search_fields = ('tracking_code', 'client_name', 'client_email', 'event_address', 'program__name')
-    readonly_fields = (
-        'tracking_code', 'created_at', 'updated_at', 'created_by_source', 'created_by_user',
-        'total_cost', 'payment_per_musician', 'cost_musicians_base', 'cost_weekend_fee', 
-        'cost_distance_fee', 'cost_gala_fee', 'cost_primetime_fee', 'cost_manager_base',
-        'cost_manager_per_person', 'cost_manager_exterior', 'cost_manager_boda', 'cost_car_fee',
-        'total_musician_payout_rounded', 'balance_due', 'calculation_log'
-    )
+    list_display = ('tracking_code', 'client_name', 'event_type', 'status', 'event_date', 'total_cost')
+    list_filter = ('status', 'event_type', 'event_date')
+    search_fields = ('tracking_code', 'client_name', 'program__name')
+    readonly_fields = ('tracking_code', 'created_at', 'updated_at', 'created_by_source', 'created_by_user', 'total_cost', 'calculation_log')
     inlines = [QuoteHistoryInline]
-
-    fieldsets = (
-        ('Información General', { 'fields': ('tracking_code', 'client_name', 'status', 'event_type', 'package', 'program') }),
-        ('Detalles del Evento', { 'fields': ('event_date', 'event_time', 'location_type', 'event_address', 'is_exterior', 'dress_code') }),
-        ('Agrupación (si no se usa paquete)', { 'fields': ('num_voices', 'num_musicians') }),
-        ('Pago y Costo', { 'fields': ('paid_amount', 'discount', 'total_cost', 'balance_due', 'payment_per_musician') }),
-        ('Contacto del Cliente', { 'fields': ('client_email', 'client_phone', 'contact_method', 'comments') }),
-        ('Costos Detallados (Solo Lectura)', {
-            'classes': ('collapse',),
-            'fields': (
-                'cost_musicians_base', 'total_musician_payout_rounded', 'cost_weekend_fee', 'cost_distance_fee', 
-                'cost_gala_fee', 'cost_primetime_fee', 'cost_manager_base', 'cost_manager_per_person', 
-                'cost_manager_exterior', 'cost_manager_boda', 'cost_car_fee', 'calculation_log'
-            )
-        }),
-        ('Información de Creación (Solo Lectura)', { 'classes': ('collapse',), 'fields': ('created_by_source', 'created_by_user', 'created_at', 'updated_at') }),
-    )
-
-    @admin.display(description='Saldo Pendiente')
-    def balance_due(self, obj):
-        return f"${obj.total_cost - obj.paid_amount:,.2f} MXN"
 
     def save_model(self, request, obj, form, change):
         from .utils import calculate_pricing
-        if not obj.tracking_code:
-            obj.tracking_code = generate_tracking_code()
-        pricing_breakdown, calculation_log_str = calculate_pricing(obj)
-        obj.calculation_log = calculation_log_str 
-        for key, value in pricing_breakdown.items():
-            setattr(obj, key, value)
-        if not obj.pk: obj.created_by_source = Quote.CreatedSource.ADMIN
+        if not obj.tracking_code: obj.tracking_code = generate_tracking_code()
+        pricing_breakdown, log = calculate_pricing(form.cleaned_data)
+        for key, value in pricing_breakdown.items(): setattr(obj, key, value)
+        obj.calculation_log = log
+        if not obj.pk: obj.created_by_source = 'ADMIN'
         obj.created_by_user = request.user
         super().save_model(request, obj, form, change)

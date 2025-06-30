@@ -5,61 +5,42 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 import math
 
+# ... (Package and EventType models are unchanged and correct) ...
 class Package(models.Model):
-    # ... (no change to this model)
     name = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)
     num_singers = models.PositiveIntegerField(default=1, verbose_name="Número de Voces")
     num_instrument_players = models.PositiveIntegerField(default=1, verbose_name="Número de Músicos")
     is_active = models.BooleanField(default=True, help_text="Show this package as an option in the quote form.")
     order = models.PositiveIntegerField(default=0, help_text="Order in which to display packages on the website.")
-
-    def __str__(self):
-        return f"{self.name} ({self.num_singers} voces, {self.num_instrument_players} músicos)"
-    
-    class Meta:
-        ordering = ['order', 'name']
-
+    def __str__(self): return f"{self.name} ({self.num_singers} voces, {self.num_instrument_players} músicos)"
+    class Meta: ordering = ['order', 'name']
 
 class EventType(models.Model):
-    # ... (no change to this model)
     name = models.CharField(max_length=100, unique=True)
-    order = models.PositiveIntegerField(default=0, blank=False, null=False, help_text="Order in which to display event types.")
+    order = models.PositiveIntegerField(default=0, help_text="Order in which to display event types.")
     is_funeral_type = models.BooleanField(default=False, help_text="Does this event type (e.g., funeral) always use the weekday musician rate?")
     has_wedding_fee = models.BooleanField(default=False, help_text="Does this event type have the special wedding manager fee?")
     manager_base_fee = models.FloatField(default=200.0, help_text="The base fee for the manager for this type of event.")
-    class Meta:
-        ordering = ['order']
-    def __str__(self):
-        return self.name
+    def __str__(self): return self.name
+    class Meta: ordering = ['order']
 
 class Program(models.Model):
     name = models.CharField(max_length=150, blank=True, null=True, default="Programa de Evento")
     pieces = models.ManyToManyField(RepertoirePiece, through='ProgramItem', related_name='programs')
     order = models.PositiveIntegerField(default=0, help_text="Orden para mostrar en listas (menor primero).")
+    def __str__(self): return self.name or "Programa sin nombre"
+    class Meta: ordering = ['order', 'name']
 
-    def __str__(self):
-        return self.name or "Programa sin nombre"
-
-    class Meta:
-        # UPDATED: Use the 'order' field for sorting
-        ordering = ['order', 'name']
-
-# THIS IS THE KEY CHANGE for the Program detail view
-# We will use Django's own inline ordering, not adminsortable2's
 class ProgramItem(models.Model):
     program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name="items")
     repertoire_piece = models.ForeignKey(RepertoirePiece, on_delete=models.CASCADE)
-    # The 'order' field name is standard for Django's TabularInline
+    # The 'order' field is correct. The error means it's missing in the DB.
     order = models.PositiveIntegerField(default=0, blank=False, null=False)
+    class Meta: ordering = ['order']
+    def __str__(self): return self.repertoire_piece.nombre if self.repertoire_piece else "Empty Slot"
 
-    class Meta:
-        ordering = ['order'] # Order by this field
-
-    def __str__(self):
-        return self.repertoire_piece.nombre if self.repertoire_piece else "Empty Slot"
-
-# ... the rest of the file remains the same ...
+# ... (The rest of the file: Quote and QuoteHistory models are correct) ...
 class Quote(models.Model):
     class QuoteStatus(models.TextChoices):
         UNCONFIRMED = 'UNCONFIRMED', _('Unconfirmed')
@@ -125,25 +106,19 @@ class Quote(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"Cotización {self.tracking_code or '(sin código)'} para {self.client_name or 'cliente'}"
+    def __str__(self): return f"Cotización {self.tracking_code or '(sin código)'} para {self.client_name or 'cliente'}"
     @property
-    def fifty_percent_deposit(self):
-        return self.total_cost / 2 if self.total_cost else 0
+    def fifty_percent_deposit(self): return self.total_cost / 2 if self.total_cost else 0
     @property
     def total_people(self):
-        if self.package:
-            return self.package.num_singers + self.package.num_instrument_players
+        if self.package: return self.package.num_singers + self.package.num_instrument_players
         return self.num_voices + self.num_musicians
-    class Meta:
-        ordering = ['-created_at']
+    class Meta: ordering = ['-created_at']
 
 class QuoteHistory(models.Model):
     quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name='history')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     action = models.CharField(max_length=255, help_text="Describes the change, e.g., 'Status changed from Confirmed to Completed'.")
-    class Meta:
-        ordering = ['-timestamp']
-    def __str__(self):
-        return f"History for {self.quote.tracking_code} at {self.timestamp}"
+    class Meta: ordering = ['-timestamp']
+    def __str__(self): return f"History for {self.quote.tracking_code} at {self.timestamp}"

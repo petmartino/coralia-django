@@ -168,7 +168,6 @@
                 {% endif %}
                 <li style="font-weight: bold; border-top: 1px solid #ccc; padding-top: 10px;"><strong>Total:</strong>
                     <span>${{ quote.total_cost|floatformat:2 }} MXN</span></li>
-
                 <li style="margin-top: 1rem;"><strong>Monto Pagado:</strong> <span>${{ quote.paid_amount|floatformat:2
                         }}</span></li>
                 <li style="font-weight: bold;"><strong>Saldo Pendiente:</strong> <span>${{
@@ -212,5 +211,6 @@
         </p>
     </div>
 </div>
-<!-- NOTE: The stray {% endblock %} tag that caused the error has been removed. -->
+<!-- This line below was removed because this block is closed in the base template -->
+<!-- {% endblock %} -->
 {% endblock main_content %}
