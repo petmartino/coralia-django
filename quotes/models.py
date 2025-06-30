@@ -1,5 +1,4 @@
 # quotes/models.py
-
 from django.db import models
 from main.models import RepertoirePiece
 from django.conf import settings
@@ -7,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 import math
 
 class Package(models.Model):
+    # ... (no change to this model)
     name = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)
     num_singers = models.PositiveIntegerField(default=1, verbose_name="Número de Voces")
@@ -20,7 +20,9 @@ class Package(models.Model):
     class Meta:
         ordering = ['order', 'name']
 
+
 class EventType(models.Model):
+    # ... (no change to this model)
     name = models.CharField(max_length=100, unique=True)
     order = models.PositiveIntegerField(default=0, blank=False, null=False, help_text="Order in which to display event types.")
     is_funeral_type = models.BooleanField(default=False, help_text="Does this event type (e.g., funeral) always use the weekday musician rate?")
@@ -34,25 +36,30 @@ class EventType(models.Model):
 class Program(models.Model):
     name = models.CharField(max_length=150, blank=True, null=True, default="Programa de Evento")
     pieces = models.ManyToManyField(RepertoirePiece, through='ProgramItem', related_name='programs')
-    order = models.PositiveIntegerField(default=0)
+    order = models.PositiveIntegerField(default=0, help_text="Orden para mostrar en listas (menor primero).")
 
     def __str__(self):
-        # UPDATED: Just return the name for a clean dropdown.
         return self.name or "Programa sin nombre"
 
     class Meta:
-        ordering = ['name']
+        # UPDATED: Use the 'order' field for sorting
+        ordering = ['order', 'name']
 
+# THIS IS THE KEY CHANGE for the Program detail view
+# We will use Django's own inline ordering, not adminsortable2's
 class ProgramItem(models.Model):
     program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name="items")
     repertoire_piece = models.ForeignKey(RepertoirePiece, on_delete=models.CASCADE)
-    position = models.PositiveIntegerField()
+    # The 'order' field name is standard for Django's TabularInline
+    order = models.PositiveIntegerField(default=0, blank=False, null=False)
+
     class Meta:
-        ordering = ['position']
+        ordering = ['order'] # Order by this field
+
     def __str__(self):
         return self.repertoire_piece.nombre if self.repertoire_piece else "Empty Slot"
 
-
+# ... the rest of the file remains the same ...
 class Quote(models.Model):
     class QuoteStatus(models.TextChoices):
         UNCONFIRMED = 'UNCONFIRMED', _('Unconfirmed')
@@ -94,7 +101,6 @@ class Quote(models.Model):
     client_name = models.CharField(max_length=150, blank=True, null=True)
     client_phone = models.CharField(max_length=50, blank=True, null=True)
     client_email = models.EmailField(max_length=150, blank=True, null=True)
-    # UPDATED: Added choices to make this a dropdown in the admin.
     contact_method = models.CharField(max_length=50, blank=True, null=True, choices=CONTACT_METHOD_CHOICES, verbose_name="Método de Contacto")
     comments = models.TextField(blank=True, null=True)
     cost_musicians_base = models.FloatField(default=0)
