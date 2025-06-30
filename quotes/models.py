@@ -27,7 +27,6 @@ class EventType(models.Model):
     name = models.CharField(max_length=100, unique=True)
     order = models.PositiveIntegerField(default=0, blank=False, null=False, help_text="Order in which to display event types.")
     
-    # NEW Pricing rule fields
     is_funeral_type = models.BooleanField(default=False, help_text="Does this event type (e.g., funeral) always use the weekday musician rate?")
     has_wedding_fee = models.BooleanField(default=False, help_text="Does this event type have the special wedding manager fee?")
     manager_base_fee = models.FloatField(default=200.0, help_text="The base fee for the manager for this type of event.")
@@ -44,13 +43,12 @@ class Program(models.Model):
     order = models.PositiveIntegerField(default=0)
 
     def __str__(self):
-        if hasattr(self, 'quotes') and self.quotes.exists():
-            quote_codes = ", ".join([q.tracking_code for q in self.quotes.all()[:3]])
-            return f"{self.name or 'Programa sin nombre'} (Usado en: {quote_codes})"
-        return self.name or f"Programa sin cotización asignada"
+        # UPDATED: Only show the name to keep the admin dropdown clean.
+        return self.name or "Programa sin nombre"
 
     class Meta:
-        ordering = ['order']
+        # Sort by name in the admin dropdown
+        ordering = ['name']
 
 
 class ProgramItem(models.Model):
@@ -88,11 +86,10 @@ class Quote(models.Model):
     ]
     DRESS_CODE_CHOICES = [('Formal-Casual', 'Formal-Casual'), ('Formal', 'Formal'), ('Gala', 'Gala')]
 
-    tracking_code = models.CharField(max_length=12, unique=True, db_index=True)
+    tracking_code = models.CharField(max_length=12, unique=True, db_index=True, blank=True)
     
     # Relationships
     event_type = models.ForeignKey(EventType, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("Event Type"))
-    # UPDATED: A program can be linked to multiple quotes now.
     program = models.ForeignKey(Program, on_delete=models.SET_NULL, blank=True, null=True, related_name='quotes')
     package = models.ForeignKey(Package, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Paquete Seleccionado")
     
@@ -134,7 +131,6 @@ class Quote(models.Model):
     paid_amount = models.FloatField(default=0, verbose_name="Monto Pagado")
     total_cost = models.FloatField(default=0)
     
-    # NEW: Read-only field to store the calculation log.
     calculation_log = models.TextField(blank=True, null=True, editable=False, verbose_name="Registro de Cálculo")
     
     # Meta
@@ -149,7 +145,6 @@ class Quote(models.Model):
 
     @property
     def fifty_percent_deposit(self):
-        """Helper property to fix the 'div' filter error in templates."""
         return self.total_cost / 2 if self.total_cost else 0
             
     @property

@@ -4,9 +4,9 @@ from django.contrib import admin, messages
 from django import forms
 from django.db import models
 from .models import Quote, Program, ProgramItem, EventType, Package, QuoteHistory
+from .views import generate_tracking_code # Import the function
 from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin
 
-# UPDATED: Make the 'order' field editable in the list view
 @admin.register(Package)
 class PackageAdmin(admin.ModelAdmin):
     list_display = ('name', 'num_singers', 'num_instrument_players', 'is_active', 'order')
@@ -27,33 +27,33 @@ class ProgramItemInline(SortableInlineAdminMixin, admin.TabularInline):
     fields = ('repertoire_piece',)
     autocomplete_fields = ['repertoire_piece']
 
-# NEW: Admin action to clone programs
 @admin.action(description='Clonar programas seleccionados')
 def clone_programs(modeladmin, request, queryset):
     for program in queryset:
-        # Clone the program instance
+        original_pk = program.pk
+        original_items = list(ProgramItem.objects.filter(program_id=original_pk))
+
         program.pk = None
         program.name = f"Copia de {program.name}"
-        program.save()
+        program.save() # This gives the new program a PK
 
         # Clone the related program items
         items_to_clone = []
-        for item in ProgramItem.objects.filter(program=queryset.get(pk=program.id-len(queryset))):
+        for item in original_items:
              items_to_clone.append(
                  ProgramItem(program=program, repertoire_piece=item.repertoire_piece, position=item.position)
              )
         ProgramItem.objects.bulk_create(items_to_clone)
-
-    modeladmin.message_user(request, f"{queryset.count()} programas han sido clonados exitosamente.", messages.SUCCESS)
+    modeladmin.message_user(request, f"{queryset.count()} programas han sido clonados.", messages.SUCCESS)
 
 
 @admin.register(Program)
 class ProgramAdmin(SortableAdminMixin, admin.ModelAdmin):
     inlines = [ProgramItemInline]
-    list_display = ('__str__', 'piece_count')
+    list_display = ('name', 'piece_count')
     search_fields = ['name']
-    list_display_links = ('__str__',)
-    actions = [clone_programs] # Add the clone action
+    list_display_links = ('name',)
+    actions = [clone_programs] 
 
     @admin.display(description='Nº Piezas')
     def piece_count(self, obj):
@@ -78,7 +78,7 @@ class QuoteAdmin(admin.ModelAdmin):
     list_display = ('tracking_code', 'client_name', 'event_type', 'status', 'event_date', 'total_cost', 'paid_amount', 'balance_due')
     list_filter = ('status', 'event_type', 'event_date', 'created_by_source')
     search_fields = ('tracking_code', 'client_name', 'client_email', 'event_address', 'program__name')
-    autocomplete_fields = ['program']
+    raw_id_fields = ('program',) # More efficient dropdown for many programs
     readonly_fields = (
         'tracking_code', 'created_at', 'updated_at', 'created_by_source', 'created_by_user',
         'total_cost', 'payment_per_musician', 'cost_musicians_base', 'cost_weekend_fee', 
@@ -99,7 +99,7 @@ class QuoteAdmin(admin.ModelAdmin):
             'fields': (
                 'cost_musicians_base', 'total_musician_payout_rounded', 'cost_weekend_fee', 'cost_distance_fee', 
                 'cost_gala_fee', 'cost_primetime_fee', 'cost_manager_base', 'cost_manager_per_person', 
-                'cost_manager_exterior', 'cost_manager_boda', 'cost_car_fee', 'calculation_log' # Add calculation_log here
+                'cost_manager_exterior', 'cost_manager_boda', 'cost_car_fee', 'calculation_log'
             )
         }),
         ('Información de Creación (Solo Lectura)', { 'classes': ('collapse',), 'fields': ('created_by_source', 'created_by_user', 'created_at', 'updated_at') }),
@@ -116,8 +116,12 @@ class QuoteAdmin(admin.ModelAdmin):
         original_obj = None
         if change: original_obj = Quote.objects.get(pk=obj.pk)
 
+        # UPDATED: Generate tracking code if one doesn't exist
+        if not obj.tracking_code:
+            obj.tracking_code = generate_tracking_code()
+
         pricing_breakdown, calculation_log_str = calculate_pricing(obj)
-        obj.calculation_log = calculation_log_str # Save the log
+        obj.calculation_log = calculation_log_str 
         for key, value in pricing_breakdown.items():
             setattr(obj, key, value)
 
@@ -127,12 +131,12 @@ class QuoteAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
         if change and original_obj:
+            # History tracking logic remains the same...
             changes = []
             changed_fields = form.changed_data[:] 
             if 'status' in changed_fields:
                 changes.append(f"Estado cambiado de '{original_obj.get_status_display()}' a '{obj.get_status_display()}'")
                 changed_fields.remove('status')
-
             for field_name in changed_fields:
                 try:
                     field = obj._meta.get_field(field_name)
@@ -141,7 +145,6 @@ class QuoteAdmin(admin.ModelAdmin):
                     if hasattr(field, 'choices') and field.choices:
                          old_val = dict(field.choices).get(old_val, old_val)
                     changes.append(f"'{verbose_name}' cambiado de '{old_val}' a '{form.cleaned_data[field_name]}'")
-                except forms.Field.DoesNotExist: pass
-
+                except (forms.Field.DoesNotExist, AttributeError): pass
             if changes:
                 QuoteHistory.objects.create(user=request.user, quote=obj, action="; ".join(changes))
