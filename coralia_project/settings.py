@@ -134,7 +134,7 @@ ADMIN_REORDER_FE_ONLY = False
 
 REQUEST_IGNORE_PATHS = (
     r'^admin/',
-    r'/favicon.ico'
+    r'^.ico'
 )
 REQUEST_IGNORE_USER_AGENTS = (
     r'^$', # ignore requests with no user agent string set

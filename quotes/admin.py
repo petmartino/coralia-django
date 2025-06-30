@@ -14,12 +14,10 @@ class PackageAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     list_editable = ('is_active', 'order')
 
-
 @admin.register(EventType)
 class EventTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'order', 'is_funeral_type', 'has_wedding_fee', 'manager_base_fee')
     list_editable = ('order', 'is_funeral_type', 'has_wedding_fee', 'manager_base_fee')
-
 
 class ProgramItemInline(SortableInlineAdminMixin, admin.TabularInline):
     model = ProgramItem
@@ -32,20 +30,12 @@ def clone_programs(modeladmin, request, queryset):
     for program in queryset:
         original_pk = program.pk
         original_items = list(ProgramItem.objects.filter(program_id=original_pk))
-
         program.pk = None
         program.name = f"Copia de {program.name}"
-        program.save() # This gives the new program a PK
-
-        # Clone the related program items
-        items_to_clone = []
-        for item in original_items:
-             items_to_clone.append(
-                 ProgramItem(program=program, repertoire_piece=item.repertoire_piece, position=item.position)
-             )
+        program.save()
+        items_to_clone = [ProgramItem(program=program, repertoire_piece=item.repertoire_piece, position=item.position) for item in original_items]
         ProgramItem.objects.bulk_create(items_to_clone)
     modeladmin.message_user(request, f"{queryset.count()} programas han sido clonados.", messages.SUCCESS)
-
 
 @admin.register(Program)
 class ProgramAdmin(SortableAdminMixin, admin.ModelAdmin):
@@ -53,8 +43,7 @@ class ProgramAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ('name', 'piece_count')
     search_fields = ['name']
     list_display_links = ('name',)
-    actions = [clone_programs] 
-
+    actions = [clone_programs]
     @admin.display(description='Nº Piezas')
     def piece_count(self, obj):
         return obj.items.count()
@@ -78,7 +67,8 @@ class QuoteAdmin(admin.ModelAdmin):
     list_display = ('tracking_code', 'client_name', 'event_type', 'status', 'event_date', 'total_cost', 'paid_amount', 'balance_due')
     list_filter = ('status', 'event_type', 'event_date', 'created_by_source')
     search_fields = ('tracking_code', 'client_name', 'client_email', 'event_address', 'program__name')
-    raw_id_fields = ('program',) # More efficient dropdown for many programs
+    # UPDATED: Removed raw_id_fields to revert to a simple dropdown
+    # raw_id_fields = ('program',) 
     readonly_fields = (
         'tracking_code', 'created_at', 'updated_at', 'created_by_source', 'created_by_user',
         'total_cost', 'payment_per_musician', 'cost_musicians_base', 'cost_weekend_fee', 
@@ -107,8 +97,7 @@ class QuoteAdmin(admin.ModelAdmin):
 
     @admin.display(description='Saldo Pendiente')
     def balance_due(self, obj):
-        balance = obj.total_cost - obj.paid_amount
-        return f"${balance:,.2f} MXN"
+        return f"${obj.total_cost - obj.paid_amount:,.2f} MXN"
 
     def save_model(self, request, obj, form, change):
         from .utils import calculate_pricing
@@ -116,7 +105,6 @@ class QuoteAdmin(admin.ModelAdmin):
         original_obj = None
         if change: original_obj = Quote.objects.get(pk=obj.pk)
 
-        # UPDATED: Generate tracking code if one doesn't exist
         if not obj.tracking_code:
             obj.tracking_code = generate_tracking_code()
 
@@ -131,7 +119,6 @@ class QuoteAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
         if change and original_obj:
-            # History tracking logic remains the same...
             changes = []
             changed_fields = form.changed_data[:] 
             if 'status' in changed_fields:

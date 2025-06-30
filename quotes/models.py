@@ -6,7 +6,6 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 import math
 
-# UPDATED: Added an 'order' field for custom sorting
 class Package(models.Model):
     name = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)
@@ -21,19 +20,14 @@ class Package(models.Model):
     class Meta:
         ordering = ['order', 'name']
 
-
-# UPDATED: EventType model with pricing rules
 class EventType(models.Model):
     name = models.CharField(max_length=100, unique=True)
     order = models.PositiveIntegerField(default=0, blank=False, null=False, help_text="Order in which to display event types.")
-    
     is_funeral_type = models.BooleanField(default=False, help_text="Does this event type (e.g., funeral) always use the weekday musician rate?")
     has_wedding_fee = models.BooleanField(default=False, help_text="Does this event type have the special wedding manager fee?")
     manager_base_fee = models.FloatField(default=200.0, help_text="The base fee for the manager for this type of event.")
-
     class Meta:
         ordering = ['order']
-
     def __str__(self):
         return self.name
 
@@ -43,26 +37,20 @@ class Program(models.Model):
     order = models.PositiveIntegerField(default=0)
 
     def __str__(self):
-        # UPDATED: Only show the name to keep the admin dropdown clean.
+        # UPDATED: Just return the name for a clean dropdown.
         return self.name or "Programa sin nombre"
 
     class Meta:
-        # Sort by name in the admin dropdown
         ordering = ['name']
-
 
 class ProgramItem(models.Model):
     program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name="items")
     repertoire_piece = models.ForeignKey(RepertoirePiece, on_delete=models.CASCADE)
     position = models.PositiveIntegerField()
-
     class Meta:
         ordering = ['position']
-
     def __str__(self):
-        if self.repertoire_piece:
-            return self.repertoire_piece.nombre
-        return "Empty Slot"
+        return self.repertoire_piece.nombre if self.repertoire_piece else "Empty Slot"
 
 
 class Quote(models.Model):
@@ -85,34 +73,30 @@ class Quote(models.Model):
         ('3_horas', 'A más de 3 horas de Guadalajara'),
     ]
     DRESS_CODE_CHOICES = [('Formal-Casual', 'Formal-Casual'), ('Formal', 'Formal'), ('Gala', 'Gala')]
+    CONTACT_METHOD_CHOICES = [
+        ('WhatsApp', 'WhatsApp'),
+        ('Llamada Telefónica', 'Llamada Telefónica'),
+        ('Correo Electrónico', 'Correo Electrónico')
+    ]
 
     tracking_code = models.CharField(max_length=12, unique=True, db_index=True, blank=True)
-    
-    # Relationships
     event_type = models.ForeignKey(EventType, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("Event Type"))
     program = models.ForeignKey(Program, on_delete=models.SET_NULL, blank=True, null=True, related_name='quotes')
     package = models.ForeignKey(Package, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Paquete Seleccionado")
-    
-    # Event Details
     event_date = models.DateField(blank=True, null=True)
     event_time = models.TimeField(blank=True, null=True)
     location_type = models.CharField(max_length=100, blank=True, null=True, choices=LOCATION_CHOICES, verbose_name="Ubicación")
     event_address = models.CharField(max_length=512, blank=True, null=True, verbose_name="Dirección del Evento")
     is_exterior = models.BooleanField(default=False)
-    
-    # Ensemble Details (used if no package is selected)
     num_voices = models.IntegerField(default=1)
     num_musicians = models.IntegerField(default=1)
     dress_code = models.CharField(max_length=50, blank=True, null=True, choices=DRESS_CODE_CHOICES, verbose_name="Código de Vestimenta")
-
-    # Client Details
     client_name = models.CharField(max_length=150, blank=True, null=True)
     client_phone = models.CharField(max_length=50, blank=True, null=True)
     client_email = models.EmailField(max_length=150, blank=True, null=True)
-    contact_method = models.CharField(max_length=50, blank=True, null=True)
+    # UPDATED: Added choices to make this a dropdown in the admin.
+    contact_method = models.CharField(max_length=50, blank=True, null=True, choices=CONTACT_METHOD_CHOICES, verbose_name="Método de Contacto")
     comments = models.TextField(blank=True, null=True)
-
-    # Cost Breakdown (auto-calculated)
     cost_musicians_base = models.FloatField(default=0)
     cost_weekend_fee = models.FloatField(default=0)
     cost_distance_fee = models.FloatField(default=0)
@@ -125,15 +109,10 @@ class Quote(models.Model):
     cost_car_fee = models.FloatField(default=0)
     total_musician_payout_rounded = models.FloatField(default=0)
     payment_per_musician = models.FloatField(default=0, help_text="Pago individual por músico, calculado por el sistema.")
-
-    # Pricing & Payment
     discount = models.FloatField(default=0, verbose_name="Descuento (cantidad fija)")
     paid_amount = models.FloatField(default=0, verbose_name="Monto Pagado")
     total_cost = models.FloatField(default=0)
-    
     calculation_log = models.TextField(blank=True, null=True, editable=False, verbose_name="Registro de Cálculo")
-    
-    # Meta
     status = models.CharField(max_length=20, choices=QuoteStatus.choices, default=QuoteStatus.UNCONFIRMED, db_index=True)
     created_by_source = models.CharField(max_length=20, choices=CreatedSource.choices, default=CreatedSource.WEBSITE)
     created_by_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, help_text="User who created or last saved the quote in the admin.")
@@ -141,18 +120,15 @@ class Quote(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Cotización {self.tracking_code} para {self.client_name}"
-
+        return f"Cotización {self.tracking_code or '(sin código)'} para {self.client_name or 'cliente'}"
     @property
     def fifty_percent_deposit(self):
         return self.total_cost / 2 if self.total_cost else 0
-            
     @property
     def total_people(self):
         if self.package:
             return self.package.num_singers + self.package.num_instrument_players
         return self.num_voices + self.num_musicians
-
     class Meta:
         ordering = ['-created_at']
 
@@ -161,9 +137,7 @@ class QuoteHistory(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     action = models.CharField(max_length=255, help_text="Describes the change, e.g., 'Status changed from Confirmed to Completed'.")
-
-    def __str__(self):
-        return f"History for {self.quote.tracking_code} at {self.timestamp}"
-
     class Meta:
         ordering = ['-timestamp']
+    def __str__(self):
+        return f"History for {self.quote.tracking_code} at {self.timestamp}"

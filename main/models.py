@@ -3,9 +3,16 @@ from django.urls import reverse
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
+    # NEW: Add an order field
+    order = models.PositiveIntegerField(default=0, help_text="Order in which to display tags.")
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        # UPDATED: Add ordering by the new field, then by name
+        ordering = ['order', 'name']
+
 
 class RepertoirePiece(models.Model):
     nombre = models.CharField(max_length=200, help_text="Nombre de la pieza musical.")
