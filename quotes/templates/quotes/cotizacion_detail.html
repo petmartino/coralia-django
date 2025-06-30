@@ -126,23 +126,7 @@
     </div>
 
     <div class="grid-container">
-        <div class="grid-widget">
-        </div>
-        <div class="grid-widget">
-            <h3>Detalles del Ensamble</h3>
-            <ul>
-                {% if quote.package %}
-                <li><strong>Paquete:</strong> <span>{{ quote.package.name }}</span></li>
-                <li><strong>Descripción:</strong> <span>{{ quote.package.description|default:"-" }}</span></li>
-                <li><strong>Músicos:</strong> <span>{{ quote.package.num_singers }} Voces, {{
-                        quote.package.num_instrument_players }} Músicos</span></li>
-                {% else %}
-                <li><strong>Músicos:</strong> <span>{{ quote.num_voices }} Voces, {{ quote.num_musicians }}
-                        Músicos</span></li>
-                {% endif %}
-                <li><strong>Vestimenta:</strong> <span>{{ quote.get_dress_code_display }}</span></li>
-            </ul>
-        </div>
+       
         <div class="grid-widget">
             <h3>Resumen de Costos</h3>
             <ul>
