@@ -138,7 +138,8 @@
                 {% if quote.event_address %}
                 <li><strong>Dirección:</strong> <span>{{ quote.event_address }}</span></li>
                 {% endif %}
-                <li><strong>Recinto:</strong> <span>{% if quote.is_exterior %}Exterior{% else %}Interior{% endif %}</span></li>
+                <li><strong>Recinto:</strong> <span>{% if quote.is_exterior %}Exterior{% else %}Interior{% endif
+                        %}</span></li>
             </ul>
         </div>
         <div class="grid-widget">
@@ -166,17 +167,26 @@
                 </li>
                 {% endif %}
                 <li style="font-weight: bold; border-top: 1px solid #ccc; padding-top: 10px;"><strong>Total:</strong>
-                    <span>${{ quote.total_cost|floatformat:2 }} MXN</span>
-                </li>
+                    <span>${{ quote.total_cost|floatformat:2 }} MXN</span></li>
                 <li style="margin-top: 1rem;"><strong>Monto Pagado:</strong> <span>${{ quote.paid_amount|floatformat:2
                         }}</span></li>
                 <li style="font-weight: bold;"><strong>Saldo Pendiente:</strong> <span>${{
                         quote.total_cost|add:-quote.paid_amount|floatformat:2 }} MXN</span></li>
             </ul>
         </div>
-    
 
-    
+        {% if program_items %}
+        <div class="grid-widget program-list" style="grid-column: 1 / -1;">
+            <h3>Programa Musical</h3>
+            <ol>
+                {% for item in program_items %}
+                <li>{{ item.repertoire_piece.nombre }} - <em>{{ item.repertoire_piece.compositor|default:"N/A" }}</em>
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
+        {% endif %}
+
         {% if show_payment_info %}
         <div class="grid-widget payment-info" style="grid-column: 1 / -1;">
             <h3>Información para Pago</h3>
