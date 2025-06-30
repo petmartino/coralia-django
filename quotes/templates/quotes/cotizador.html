@@ -4,7 +4,7 @@
 
 {% block head_extra %}
 <style>
-    /* ... (CSS is largely the same, but let's add a few tweaks) ... */
+    /* ... existing styles ... */
     .cotizador-container {
         max-width: 700px;
         margin: 2rem auto;
@@ -52,6 +52,10 @@
         border: 1px solid #ccc;
         border-radius: 6px;
         box-sizing: border-box;
+    }
+
+    .form-group input[type=radio] {
+        width: auto;
     }
 
     /* NEW: Styling for radio buttons */
@@ -173,7 +177,7 @@
             <button id="start-quote-btn" class="btn btn-primary btn-large">📅 Cotizar mi Evento</button>
         </div>
         <div id="tracker-wrapper" style="margin-top: 2rem;">
-            <button id="track-quote-btn" class="btn btn-secondary btn-large">🔍 Rastrear Cotización</button>
+            <button id="track-quote-btn" class="btn btn-secondary">🔍 Rastrear Cotización</button>
             <div id="tracker-form">
                 <form action="{% url 'quotes:rastrear_cotizacion' %}" method="POST">
                     {% csrf_token %}
@@ -207,12 +211,10 @@
                 {{ form.location_type.label_tag }}
                 {{ form.location_type }}
             </div>
-            <!-- NEW: Address field -->
             <div class="form-group">
                 {{ form.event_address.label_tag }}
                 {{ form.event_address }}
             </div>
-            <!-- UPDATED: Radio buttons inline -->
             <div class="form-group radio-group">
                 <label>El evento es en:</label>
                 <span>
@@ -226,21 +228,19 @@
             </div>
             <div class="btn-group">
                 <span></span>
-                <button type="button" class="btn btn-primary" onclick="nextStep(2)">Siguiente →</button>
+                <!-- MODIFIED: Onclick now calls a validation function -->
+                <button type="button" class="btn btn-primary" onclick="validateStep1()">Siguiente →</button>
             </div>
         </div>
 
         <!-- Step 2: Ensemble Details -->
         <div id="step-2" class="cotizador-step">
             <h2>Paso 2: Detalles del Ensamble 🎶</h2>
-            <!-- NEW: Package selection -->
             <div class="form-group">
                 {{ form.package.label_tag }}
                 {{ form.package }}
                 <small>Si selecciona un paquete, se ignorarán los campos de abajo.</small>
             </div>
-
-            <!-- Custom ensemble section -->
             <div id="custom-ensemble-fields">
                 <div class="form-group">
                     {{ form.num_voices.label_tag }}
@@ -251,7 +251,6 @@
                     {{ form.num_musicians }}
                 </div>
             </div>
-
             <div class="form-group">
                 {{ form.dress_code.label_tag }}
                 {{ form.dress_code }}
@@ -317,23 +316,31 @@
     function nextStep(stepIndex) { showStep(stepIndex); }
     function prevStep(stepIndex) { showStep(stepIndex); }
 
-    // NEW: Logic to hide/show custom ensemble fields
-    const packageSelect = document.getElementById('id_package');
+    // --- NEW VALIDATION FUNCTION ---
+    function validateStep1() {
+        const eventTypeSelect = document.getElementById('{{ form.event_type.id_for_label }}');
+        if (!eventTypeSelect.value) {
+            alert('Por favor, seleccione un tipo de evento para continuar.');
+            eventTypeSelect.focus(); // Focus on the field for better UX
+            return; // Stop the function
+        }
+        // If validation passes, move to the next step
+        nextStep(2);
+    }
+
+    const packageSelect = document.getElementById('{{ form.package.id_for_label }}');
     const customFields = document.getElementById('custom-ensemble-fields');
     if (packageSelect) {
         packageSelect.addEventListener('change', (e) => {
             customFields.classList.toggle('hidden', !!e.target.value);
         });
-        // Initial check in case of form reload with a value
         customFields.classList.toggle('hidden', !!packageSelect.value);
     }
 
-
     quoteForm.addEventListener('submit', function (e) {
-        // Client-side validation
-        const name = document.getElementById('id_client_name').value;
-        const phone = document.getElementById('id_client_phone').value;
-        const email = document.getElementById('id_client_email').value;
+        const name = document.getElementById('{{ form.client_name.id_for_label }}').value;
+        const phone = document.getElementById('{{ form.client_phone.id_for_label }}').value;
+        const email = document.getElementById('{{ form.client_email.id_for_label }}').value;
 
         if (currentStep === 3 && (!name || (!phone && !email))) {
             e.preventDefault();
@@ -341,16 +348,14 @@
             return;
         }
 
-        // Check package/custom ensemble validation
-        const numVoices = document.getElementById('id_num_voices').value;
-        const numMusicians = document.getElementById('id_num_musicians').value;
+        const numVoices = document.getElementById('{{ form.num_voices.id_for_label }}').value;
+        const numMusicians = document.getElementById('{{ form.num_musicians.id_for_label }}').value;
         if (currentStep === 3 && !packageSelect.value && (!numVoices || !numMusicians)) {
             e.preventDefault();
             alert('Debe seleccionar un paquete o especificar el número de voces y músicos.');
-            nextStep(2); // Send user back to the problem step
+            nextStep(2);
             return;
         }
-
         document.getElementById('loading-overlay').style.display = 'flex';
     });
 </script>

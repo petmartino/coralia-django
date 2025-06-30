@@ -3,11 +3,8 @@
 - Agregar * required y alguna validacion en cotización
 - fix frontend cotizador radios
 - The interior/exterior radio buttons should be presented on the same line.
-- Tags en español, admin  en español
-- Mostrar matemáticas en quotes, poner historial hasta abajo en quotes...
-- Mostrar detail information disabled, 
-- Mostrar payment information 
-
+- Mostrar payment information REAL a confirmed
+- Mejorar página de contacto
 
 
 # V 2 - PAGOS / CONTRATOS / EMAILS 
