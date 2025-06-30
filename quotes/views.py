@@ -1,9 +1,11 @@
+# quotes/views.py
 import uuid
 import base58
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+# --- We are temporarily not using Program logic ---
 from .models import Quote, Package
 from .forms import QuoteForm, TrackerForm
 from .utils import calculate_pricing
@@ -50,14 +52,23 @@ def cotizador_view(request):
     return render(request, 'quotes/cotizador.html', {'form': form, 'tracker_form': tracker_form, 'packages': packages})
 
 def ver_cotizacion_view(request, code):
-    quote = get_object_or_404(Quote, tracking_code=code.lower())
+    """
+    This is the simple confirmation/preview page. It works without program logic.
+    """
+    code = code.lower()
+    quote = get_object_or_404(Quote, tracking_code=code)
     return render(request, 'quotes/ver_cotizacion.html', {'quote': quote})
 
+# This view is temporarily disabled in urls.py until the database is fixed.
+# The code itself is correct for when we are ready to use it again.
 def cotizacion_detail_view(request, code):
-    quote = get_object_or_404(Quote.objects.select_related('package', 'event_type'), tracking_code=code.lower())
+    """
+    This is the full detail page.
+    """
+    code = code.lower()
+    quote = get_object_or_404(Quote.objects.select_related('package', 'event_type'), tracking_code=code)
     context = {
         'quote': quote,
-        # --- DELETED --- No more 'program_items'
         'show_payment_info': quote.status in ['UNCONFIRMED', 'CONFIRMED'],
     }
     return render(request, 'quotes/cotizacion_detail.html', context)
@@ -67,6 +78,9 @@ def rastrear_cotizacion_view(request):
         form = TrackerForm(request.POST)
         if form.is_valid():
             code = form.cleaned_data.get('tracking_code').lower()
-            if Quote.objects.filter(tracking_code=code).exists():
+            quote = Quote.objects.filter(tracking_code=code).first()
+            if quote:
+                # This now correctly redirects to the URL name 'cotizacion_detail',
+                # which is currently pointing to the simple view. This is what we want.
                 return redirect(reverse('quotes:cotizacion_detail', args=[code]))
     return redirect(reverse('quotes:cotizador'))

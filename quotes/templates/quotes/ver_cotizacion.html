@@ -114,13 +114,15 @@
         <h3>Resumen de tu Solicitud</h3>
         <ul>
             <li><strong>Evento:</strong> <span>{{ quote.event_type.name }}</span></li>
+            {# --- LOGIC CORRECTION --- #}
             {% if quote.package %}
             <li><strong>Ensamble:</strong> <span>Paquete: {{ quote.package.name }}</span></li>
             {% else %}
             <li><strong>Ensamble:</strong> <span>{{ quote.num_voices }} {% if quote.num_voices == 1 %}Voz{% else
-                    %}Voces{% endif %} y {{ quote.num_musicians }} {% if quote.num_musicians == 1 %}Músico{% else
-                    %}Músicos{% endif %}</span></li>
+                    %}Voces{% endif %} y {{ quote.num_musicians }} {% if quote.num_musicians == 1 %}Músico{%
+                    else%}Músicos{% endif %}</span></li>
             {% endif %}
+            {# ------------------------ #}
             <li><strong>Código de Vestimenta:</strong> <span>{{ quote.dress_code }}</span></li>
             {% if quote.event_date %}
             <li><strong>Fecha Estimada:</strong> <span>{{ quote.event_date|date:"d \d\e F, Y" }}</span></li>

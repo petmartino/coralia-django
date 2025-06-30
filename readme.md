@@ -1,18 +1,26 @@
 ##TODO 
+- Fix crear cotización URGE.
 
-
+- Agregar * required y alguna validacion en cotización
 - fix frontend cotizador radios
-- The interior/exterior radio buttons should be presented on the same line. 
+- The interior/exterior radio buttons should be presented on the same line.
+- Tags en español, todo en español
 
+
+- Program templates primario, orden...  Template pieces tmb con orden. 
+
+- Custom program 
 
 
 # V 2 - PAGOS / CONTRATOS / EMAILS 
-
-- PERMITIR ARMAR LA PLANTILLA DE MÚSICOS 
-- CADA QUIEN SUS QUOTES, 
+- NO TRACKEAR FAVICON
+- PERMITIR ARMAR LA PLANTILLA DE MÚSICOS EN QUOTE
+- CUSTOM PROGRAM FROM PROGRAM TEMPLATES
 - INCLUIR DESCUENTO SITIO WEB AJUSTAR TARIFA (+20%) (-20%) 
 - PREPARAR LO DEL CONTRATO
 - BOTON PARA DATOS DE PAGO
+- CADA QUIEN SUS QUOTES, 
+
 - PREPARAR BOTONES PARA COBRAR EN STRIPE
 - ADMINISTRAR EMAILS Y SETEAR? (un solo formato y en txt se hagan automático?)
 - MAILS DESDE BOTÓN (ENVIAR CORREO DE CONFIRMACIÓN)

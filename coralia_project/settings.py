@@ -109,33 +109,34 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# ... (all other settings are correct) ...
+# coralia_project/settings.py
+import os
+from pathlib import Path
+
+# ... (All other settings are correct, no need to change them) ...
+# ...
+# ...
 
 ADMIN_REORDER = (
-    # Group all quote-related models together
     {'app': 'quotes', 'label': 'Cotizaciones y Programas',
-     'models': ('quotes.Quote', 'quotes.EventType', 'quotes.Program', 'quotes.Package')
-    },
-    # Group main content models
+     'models': ('quotes.Quote', 'quotes.EventType', 'quotes.Package')},
     {'app': 'main', 'label': 'Contenido Principal',
-     'models': ('main.RepertoirePiece', 'main.Tag')
-    },
-    # Group analytics models
+     'models': ('main.RepertoirePiece', 'main.Tag')},
     {'app': 'analytics', 'label': 'Estadísticas del Sitio',
-     'models': ('analytics.Visit', 'request.Request')
-    },
-    # Keep auth models together
-    {'app': 'auth', 'label': 'Autorización', 'models': ('auth.User', 'auth.Group')},
+     'models': ('analytics.Visit',)},
+    {'app': 'auth', 'label': 'Autorización',
+     'models': ('auth.User', 'auth.Group')},
 )
 
-
-# NEW: This forces the reordering logic to apply on every admin page.
 ADMIN_REORDER_FE_ONLY = False 
 
-
+# THIS IS THE CRITICAL FIX
 REQUEST_IGNORE_PATHS = (
     r'^admin/',
-    r'^.ico'
+    r'favicon\.ico$',  # This is the corrected regular expression
 )
+
 REQUEST_IGNORE_USER_AGENTS = (
     r'^$', # ignore requests with no user agent string set
     r'Googlebot',

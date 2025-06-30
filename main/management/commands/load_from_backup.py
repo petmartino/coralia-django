@@ -5,7 +5,8 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.utils.timezone import make_aware
 from main.models import Tag, RepertoirePiece
-from quotes.models import Quote, Program, ProgramItem
+# MODIFIED: Removed Program, ProgramItem which no longer exist
+from quotes.models import Quote, EventType, Package 
 
 class Command(BaseCommand):
     help = 'Loads data from the old site.db backup file (backup.sql).'
@@ -59,10 +60,9 @@ class Command(BaseCommand):
             except (RepertoirePiece.DoesNotExist, Tag.DoesNotExist):
                 self.stdout.write(self.style.WARNING(f"Skipping relation for missing piece or tag."))
 
-        self.stdout.write("Importing Programs...")
-        cursor.execute("SELECT * FROM program")
-        for row in cursor.fetchall():
-            Program.objects.update_or_create(id=row['id'], defaults={'name': row['name']})
+        # --- PROGRAM LOGIC REMOVED as the models no longer exist ---
+        # self.stdout.write("Importing Programs...")
+        # ...
         
         self.stdout.write("Importing Quotes...")
         cursor.execute("SELECT * FROM quote")
@@ -73,12 +73,7 @@ class Command(BaseCommand):
             def parse_time(time_str):
                 return datetime.strptime(time_str, '%H:%M:%S').time() if time_str else None
 
-            program_instance = None
-            if row['program_id']:
-                try:
-                    program_instance = Program.objects.get(id=row['program_id'])
-                except Program.DoesNotExist:
-                    self.stdout.write(self.style.WARNING(f"Program with id {row['program_id']} not found for quote."))
+            # --- program_instance LOGIC REMOVED ---
 
             def parse_datetime(dt_str):
                 if not dt_str: return None
@@ -86,6 +81,9 @@ class Command(BaseCommand):
                 naive_dt = datetime.strptime(dt_str.split('.')[0], '%Y-%m-%d %H:%M:%S')
                 # Make it timezone-aware for Django
                 return make_aware(naive_dt)
+                
+            # A fake EventType lookup, you should create these in your new database first
+            event_type_obj, _ = EventType.objects.get_or_create(name=row['event_type'], defaults={'order': 99})
 
             Quote.objects.update_or_create(
                 id=row['id'],
@@ -93,9 +91,9 @@ class Command(BaseCommand):
                     'tracking_code': row['tracking_code'],
                     'event_date': parse_date(row['event_date']),
                     'event_time': parse_time(row['event_time']),
-                    'event_type': row['event_type'],
+                    'event_type': event_type_obj, # Use the object
                     'location_type': row['location_type'],
-                    'location_details': row['location_details'],
+                    # REMOVED field: 'location_details': row['location_details'],
                     'is_exterior': bool(row['is_exterior']),
                     'num_voices': row['num_voices'],
                     'num_musicians': row['num_musicians'],
@@ -107,22 +105,12 @@ class Command(BaseCommand):
                     'comments': row['comments'],
                     'total_cost': row['total_cost'],
                     'created_at': parse_datetime(row['created_at']),
-                    'program': program_instance,
+                    # REMOVED field: 'program': program_instance,
                 }
             )
             
-        self.stdout.write("Importing Program Items...")
-        cursor.execute("SELECT * FROM program_item")
-        for row in cursor.fetchall():
-            ProgramItem.objects.update_or_create(
-                id=row['id'],
-                defaults={
-                    'program_id': row['program_id'],
-                    'repertoire_piece_id': row['repertoire_piece_id'],
-                    'position': row['position'],
-                }
-            )
+        # --- PROGRAM ITEM LOGIC REMOVED ---
             
         conn.close()
         os.remove(temp_db_file)
-        self.stdout.write(self.style.SUCCESS("Successfully imported all data from backup."))
+        self.stdout.write(self.style.SUCCESS("Successfully imported data. Note: Program logic was skipped."))
