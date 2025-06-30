@@ -179,18 +179,7 @@
             </ul>
         </div>
 
-        {# This whole block now has a clean structure. #}
-        {% if program_items %}
-        <div class="grid-widget program-list" style="grid-column: 1 / -1;">
-            <h3>Programa Musical</h3>
-            <ol>
-                {% for item in program_items %}
-                <li>{{ item.repertoire_piece.nombre }} - <em>{{ item.repertoire_piece.compositor|default:"N/A" }}</em>
-                </li>
-                {% endfor %}
-            </ol>
-        </div>
-        {% endif %}
+        
 
         {# This block also has a clean structure. #}
         {% if show_payment_info %}
