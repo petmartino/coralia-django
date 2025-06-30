@@ -1,9 +1,7 @@
-# quotes/admin.py
 from django.contrib import admin, messages
-from .models import Quote, Program, ProgramItem, EventType, Package, QuoteHistory
+# --- DELETED --- Program and ProgramItem imports removed.
+from .models import Quote, EventType, Package, QuoteHistory
 from .views import generate_tracking_code
-
-# Remove all `adminsortable2` logic as it's the source of the conflict.
 
 @admin.register(Package)
 class PackageAdmin(admin.ModelAdmin):
@@ -17,40 +15,7 @@ class EventTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'order')
     list_editable = ('order',)
 
-# UPDATED: Use a standard Django inline.
-class ProgramItemInline(admin.TabularInline):
-    model = ProgramItem
-    extra = 1
-    # We now list our custom 'order' field to control the sequence.
-    fields = ('order', 'repertoire_piece',)
-    autocomplete_fields = ['repertoire_piece']
-    # This ensures that when the form is displayed, it's ordered correctly.
-    ordering = ('order',)
-
-@admin.action(description='Clonar programas seleccionados')
-def clone_programs(modeladmin, request, queryset):
-    for program in queryset:
-        original_pk = program.pk
-        original_items = list(ProgramItem.objects.filter(program_id=original_pk))
-        program.pk = None
-        program.name = f"Copia de {program.name}"
-        program.save()
-        items_to_clone = [ProgramItem(program=program, repertoire_piece=item.repertoire_piece, order=item.order) for item in original_items]
-        ProgramItem.objects.bulk_create(items_to_clone)
-    modeladmin.message_user(request, f"{queryset.count()} programas han sido clonados.", messages.SUCCESS)
-
-# UPDATED: Completely standard admin class. No more special mixins.
-@admin.register(Program)
-class ProgramAdmin(admin.ModelAdmin):
-    list_display = ('name', 'order', 'piece_count')
-    list_editable = ('order',) # 'name' will be the link by default.
-    search_fields = ['name']
-    inlines = [ProgramItemInline]
-    actions = [clone_programs]
-    
-    @admin.display(description='Nº Piezas')
-    def piece_count(self, obj):
-        return obj.items.count()
+# --- DELETED --- ProgramItemInline and ProgramAdmin have been completely removed.
 
 class QuoteHistoryInline(admin.TabularInline):
     model = QuoteHistory
@@ -62,17 +27,31 @@ class QuoteHistoryInline(admin.TabularInline):
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
     list_display = ('tracking_code', 'client_name', 'event_type', 'status', 'event_date', 'total_cost')
-    list_filter = ('status', 'event_type', 'event_date')
-    search_fields = ('tracking_code', 'client_name', 'program__name')
+    list_filter = ('status', 'event_type', 'event_date', 'created_by_source')
+    # --- UPDATED --- Removed program__name from search
+    search_fields = ('tracking_code', 'client_name', 'client_email', 'event_address')
     readonly_fields = ('tracking_code', 'created_at', 'updated_at', 'created_by_source', 'created_by_user', 'total_cost', 'calculation_log')
     inlines = [QuoteHistoryInline]
+
+    fieldsets = (
+        # --- UPDATED --- Removed 'program' field from this fieldset
+        ('Información General', { 'fields': ('tracking_code', 'client_name', 'status', 'event_type', 'package') }),
+        ('Detalles del Evento', { 'fields': ('event_date', 'event_time', 'location_type', 'event_address', 'is_exterior', 'dress_code') }),
+        ('Agrupación (si no se usa paquete)', { 'fields': ('num_voices', 'num_musicians') }),
+        ('Pago y Costo', { 'fields': ('paid_amount', 'discount', 'total_cost') }),
+        ('Contacto del Cliente', { 'fields': ('client_email', 'client_phone', 'contact_method', 'comments') }),
+    )
 
     def save_model(self, request, obj, form, change):
         from .utils import calculate_pricing
         if not obj.tracking_code: obj.tracking_code = generate_tracking_code()
-        pricing_breakdown, log = calculate_pricing(form.cleaned_data)
+        
+        # Pass the instance directly to the pricing function
+        pricing_breakdown, log = calculate_pricing(obj)
+
         for key, value in pricing_breakdown.items(): setattr(obj, key, value)
         obj.calculation_log = log
+
         if not obj.pk: obj.created_by_source = 'ADMIN'
         obj.created_by_user = request.user
         super().save_model(request, obj, form, change)

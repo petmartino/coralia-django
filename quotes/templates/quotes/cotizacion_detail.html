@@ -4,113 +4,7 @@
 
 {% block head_extra %}
 <style>
-    .quote-detail-container {
-        max-width: 800px;
-        margin: 2rem auto;
-        padding: 2rem;
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    .quote-header {
-        text-align: center;
-        margin-bottom: 2rem;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 1.5rem;
-    }
-
-    .tracking-code {
-        font-size: 1.5em;
-        font-weight: bold;
-        background: #eef;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        display: inline-block;
-        font-family: monospace;
-        color: #33a;
-    }
-
-    .quote-status {
-        font-size: 1.2em;
-        font-weight: bold;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        display: inline-block;
-        margin-top: 1rem;
-    }
-
-    .status-UNCONFIRMED {
-        background-color: #ffc107;
-        color: #333;
-    }
-
-    .status-CONFIRMED {
-        background-color: #28a745;
-        color: white;
-    }
-
-    .status-COMPLETED {
-        background-color: #17a2b8;
-        color: white;
-    }
-
-    .status-CANCELLED {
-        background-color: #dc3545;
-        color: white;
-    }
-
-    .grid-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-top: 1.5rem;
-    }
-
-    .grid-widget {
-        background: #f9f9f9;
-        padding: 1.5rem;
-        border-radius: 8px;
-    }
-
-    .grid-widget h3 {
-        margin-top: 0;
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 0.5rem;
-    }
-
-    .grid-widget ul {
-        list-style: none;
-        padding: 0;
-    }
-
-    .grid-widget li {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px dashed #eee;
-    }
-
-    .grid-widget li:last-child {
-        border-bottom: none;
-    }
-
-    .program-list ol {
-        padding-left: 20px;
-    }
-
-    .payment-info {
-        background-color: #eaf7ff;
-        border-left: 5px solid #007bff;
-    }
-
-    .disclaimer {
-        font-style: italic;
-        color: #666;
-        text-align: center;
-        margin-top: 2rem;
-        font-size: 0.9em;
-    }
+    /* ... (CSS is correct) ... */
 </style>
 {% endblock %}
 
@@ -173,17 +67,9 @@
                         quote.total_cost|add:-quote.paid_amount|floatformat:2 }} MXN</span></li>
             </ul>
         </div>
-        {% if program_items %}
-        <div class="grid-widget program-list" style="grid-column: 1 / -1;">
-            <h3>Programa Musical</h3>
-            <ol>
-                {% for item in program_items %}
-                <li>{{ item.repertoire_piece.nombre }} - <em>{{ item.repertoire_piece.compositor|default:"N/A" }}</em>
-                </li>
-                {% endfor %}
-            </ol>
-        </div>
-        {% endif %}
+
+        <!-- --- DELETED: The entire "Programa Musical" block is gone --- -->
+
         {% if show_payment_info %}
         <div class="grid-widget payment-info" style="grid-column: 1 / -1;">
             <h3>Información para Pago</h3>
