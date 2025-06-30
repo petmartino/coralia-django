@@ -199,7 +199,7 @@
             <div class="form-group">
                 {{ form.event_type.label_tag }}
                 {{ form.event_type }}
-            </div>
+            <span style="color: red">*</span></div>
             <div class="form-group">
                 <label>Fecha y Hora (Opcional)</label>
                 <div style="display: flex; gap: 1rem;">
@@ -218,12 +218,11 @@
             <div class="form-group radio-group">
                 <label>El evento es en:</label>
                 <span>
-                    <input type="radio" id="interior" name="is_exterior" value="False" checked> <label
-                        for="interior">Interior</label>
+                    <label for="interior"><input type="radio" id="interior" name="is_exterior" value="False" checked> Interior</label>
                 </span>
                 <span style="margin-left: 1rem;">
-                    <input type="radio" id="exterior" name="is_exterior" value="True"> <label
-                        for="exterior">Exterior</label>
+                    <label for="exterior">
+                    <input type="radio" id="exterior" name="is_exterior" value="True">Exterior</label>
                 </span>
             </div>
             <div class="btn-group">
