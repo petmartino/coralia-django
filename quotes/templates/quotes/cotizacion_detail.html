@@ -162,11 +162,9 @@
                 <li style="font-weight: bold; border-top: 1px solid #ccc; padding-top: 10px;"><strong>Total:</strong>
                     <span>${{ quote.total_cost|floatformat:2 }} MXN</span>
                 </li>
-                <li style="margin-top: 1rem;"><strong>Monto Pagado:</strong> <span>${{ quote.paid_amount|floatformat:2
-                        }}</span></li>
+                <li style="margin-top: 1rem;"><strong>Monto Pagado:</strong> <span>${{ quote.paid_amount|floatformat:2 }}</span></li>
                 {# --- CORRECTED CALCULATION --- #}
-                <li style="font-weight: bold;"><strong>Saldo Pendiente:</strong> <span>${{
-                        quote.outstanding_balance|floatformat:2 }} MXN</span></li>
+                <li style="font-weight: bold;"><strong>Saldo Pendiente:</strong> <span>${{ quote.outstanding_balance|floatformat:2 }} MXN</span></li>
             </ul>
         </div>
 
