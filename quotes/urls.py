@@ -10,6 +10,6 @@ urlpatterns = [
     # This is the initial "Thank You" preview page
     path('cotizacion-recibida/<str:code>/', views.ver_cotizacion_view, name='ver_cotizacion'),
     # This is the full, trackable detail page with program and payment info
-    path('cotizacion/<str:code>/', views.cotizacion_detail_view, name='cotizacion_detail'),
+    path('cotizacion/<str:code>/', views.ver_cotizacion_view, name='ver_cotizacion'),
     path('rastrear-cotizacion/', views.rastrear_cotizacion_view, name='rastrear_cotizacion'),
 ]
