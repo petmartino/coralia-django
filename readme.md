@@ -1,9 +1,5 @@
 ##TODO 
 
- 
-
-
-
 
 - fix frontend cotizador radios
 - The interior/exterior radio buttons should be presented on the same line. 
