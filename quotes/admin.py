@@ -1,10 +1,9 @@
 # quotes/admin.py
-
 from django.contrib import admin, messages
 from .models import Quote, Program, ProgramItem, EventType, Package, QuoteHistory
 from .views import generate_tracking_code
 
-# Completely removed all ties to adminsortable2 for programs
+# Remove all `adminsortable2` logic as it's the source of the conflict.
 
 @admin.register(Package)
 class PackageAdmin(admin.ModelAdmin):
@@ -18,11 +17,14 @@ class EventTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'order')
     list_editable = ('order',)
 
+# UPDATED: Use a standard Django inline.
 class ProgramItemInline(admin.TabularInline):
     model = ProgramItem
     extra = 1
+    # We now list our custom 'order' field to control the sequence.
     fields = ('order', 'repertoire_piece',)
     autocomplete_fields = ['repertoire_piece']
+    # This ensures that when the form is displayed, it's ordered correctly.
     ordering = ('order',)
 
 @admin.action(description='Clonar programas seleccionados')
@@ -37,11 +39,11 @@ def clone_programs(modeladmin, request, queryset):
         ProgramItem.objects.bulk_create(items_to_clone)
     modeladmin.message_user(request, f"{queryset.count()} programas han sido clonados.", messages.SUCCESS)
 
+# UPDATED: Completely standard admin class. No more special mixins.
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
     list_display = ('name', 'order', 'piece_count')
-    list_editable = ('order',)  # 'name' is the link by default
-    list_display_links = ('name',) # Explicitly make name the link
+    list_editable = ('order',) # 'name' will be the link by default.
     search_fields = ['name']
     inlines = [ProgramItemInline]
     actions = [clone_programs]

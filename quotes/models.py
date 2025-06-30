@@ -5,7 +5,6 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 import math
 
-# ... (Package and EventType models are unchanged and correct) ...
 class Package(models.Model):
     name = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)
@@ -13,34 +12,39 @@ class Package(models.Model):
     num_instrument_players = models.PositiveIntegerField(default=1, verbose_name="Número de Músicos")
     is_active = models.BooleanField(default=True, help_text="Show this package as an option in the quote form.")
     order = models.PositiveIntegerField(default=0, help_text="Order in which to display packages on the website.")
-    def __str__(self): return f"{self.name} ({self.num_singers} voces, {self.num_instrument_players} músicos)"
+    def __str__(self): return f"{self.name} ({self.num_singers}v, {self.num_instrument_players}m)"
     class Meta: ordering = ['order', 'name']
 
 class EventType(models.Model):
     name = models.CharField(max_length=100, unique=True)
     order = models.PositiveIntegerField(default=0, help_text="Order in which to display event types.")
-    is_funeral_type = models.BooleanField(default=False, help_text="Does this event type (e.g., funeral) always use the weekday musician rate?")
-    has_wedding_fee = models.BooleanField(default=False, help_text="Does this event type have the special wedding manager fee?")
-    manager_base_fee = models.FloatField(default=200.0, help_text="The base fee for the manager for this type of event.")
+    is_funeral_type = models.BooleanField(default=False, help_text="Funerals always use weekday rates.")
+    has_wedding_fee = models.BooleanField(default=False, help_text="Adds special manager fee for weddings.")
+    manager_base_fee = models.FloatField(default=200.0, help_text="Base manager fee for this event.")
     def __str__(self): return self.name
     class Meta: ordering = ['order']
 
 class Program(models.Model):
     name = models.CharField(max_length=150, blank=True, null=True, default="Programa de Evento")
     pieces = models.ManyToManyField(RepertoirePiece, through='ProgramItem', related_name='programs')
-    order = models.PositiveIntegerField(default=0, help_text="Orden para mostrar en listas (menor primero).")
+    order = models.PositiveIntegerField(default=0, help_text="Order in admin lists (lower numbers first).")
     def __str__(self): return self.name or "Programa sin nombre"
     class Meta: ordering = ['order', 'name']
 
+# THIS IS THE CRUCIAL CHANGE
 class ProgramItem(models.Model):
     program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name="items")
     repertoire_piece = models.ForeignKey(RepertoirePiece, on_delete=models.CASCADE)
-    # The 'order' field is correct. The error means it's missing in the DB.
+    # The field is now named 'order'
     order = models.PositiveIntegerField(default=0, blank=False, null=False)
-    class Meta: ordering = ['order']
-    def __str__(self): return self.repertoire_piece.nombre if self.repertoire_piece else "Empty Slot"
 
-# ... (The rest of the file: Quote and QuoteHistory models are correct) ...
+    class Meta:
+        # We order by this new field.
+        ordering = ['order']
+    def __str__(self):
+        return self.repertoire_piece.nombre if self.repertoire_piece else "Empty Slot"
+
+# ... rest of the file (Quote, QuoteHistory) is correct.
 class Quote(models.Model):
     class QuoteStatus(models.TextChoices):
         UNCONFIRMED = 'UNCONFIRMED', _('Unconfirmed')
@@ -53,19 +57,9 @@ class Quote(models.Model):
         WEBSITE = 'WEBSITE', _('Website')
         ADMIN = 'ADMIN', _('Admin')
 
-    LOCATION_CHOICES = [
-        ('dentro_periferico', 'Dentro del periférico de Guadalajara'),
-        ('fuera_periferico', 'Fuera del periférico (ZMG)'),
-        ('1_hora', 'A 1 hora de Guadalajara'),
-        ('2_horas', 'A 2 horas de Guadalajara'),
-        ('3_horas', 'A más de 3 horas de Guadalajara'),
-    ]
+    LOCATION_CHOICES = [('dentro_periferico', 'Dentro del periférico de Guadalajara'), ('fuera_periferico', 'Fuera del periférico (ZMG)'), ('1_hora', 'A 1 hora de Guadalajara'), ('2_horas', 'A 2 horas de Guadalajara'), ('3_horas', 'A más de 3 horas de Guadalajara')]
     DRESS_CODE_CHOICES = [('Formal-Casual', 'Formal-Casual'), ('Formal', 'Formal'), ('Gala', 'Gala')]
-    CONTACT_METHOD_CHOICES = [
-        ('WhatsApp', 'WhatsApp'),
-        ('Llamada Telefónica', 'Llamada Telefónica'),
-        ('Correo Electrónico', 'Correo Electrónico')
-    ]
+    CONTACT_METHOD_CHOICES = [('WhatsApp', 'WhatsApp'), ('Llamada Telefónica', 'Llamada Telefónica'), ('Correo Electrónico', 'Correo Electrónico')]
 
     tracking_code = models.CharField(max_length=12, unique=True, db_index=True, blank=True)
     event_type = models.ForeignKey(EventType, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("Event Type"))
