@@ -22,8 +22,8 @@ def cotizador_view(request):
         if form.is_valid():
             data = form.cleaned_data
 
-            # --- 1. Calculate pricing using the centralized function ---
-            pricing_breakdown = calculate_pricing(data)
+            # --- 1. Calculate pricing and get the log ---
+            pricing_breakdown, calculation_log_str = calculate_pricing(data)
 
             # --- 2. Create the Quote instance ---
             new_quote = Quote(
@@ -35,70 +35,66 @@ def cotizador_view(request):
                 location_type=data.get('location_type'),
                 event_address=data.get('event_address'),
                 is_exterior=data.get('is_exterior', False),
-                num_voices=int(data.get('num_voices', 1)),
-                num_musicians=int(data.get('num_musicians', 1)),
+                num_voices=int(data.get('num_voices', 1)) if data.get('num_voices') else 0,
+                num_musicians=int(data.get('num_musicians', 1)) if data.get('num_musicians') else 0,
                 dress_code=data.get('dress_code'),
                 client_name=data.get('client_name'),
                 client_phone=data.get('client_phone'),
                 client_email=data.get('client_email'),
                 contact_method=data.get('contact_method'),
                 comments=data.get('comments'),
-                **pricing_breakdown # Unpack all calculated values into the model
+                calculation_log=calculation_log_str, # Save the log
+                **pricing_breakdown 
             )
             
-            # --- If a program is needed, create an empty one ---
+            # --- Associate a program ---
+            # Now we use an existing program or create a new one if specified
+            # This logic can be extended in the future, for now it will just link or create new
             if not new_quote.program:
                 program = Program.objects.create(name=f"Programa para {new_quote.tracking_code}")
                 new_quote.program = program
 
             new_quote.save()
 
-            # --- 3. Send email (unchanged) ---
+            # --- 3. Send email ---
             if new_quote.client_email:
-                email_context = {'quote': new_quote}
-                html_message = render_to_string('emails/quote_confirmation.html', email_context)
-                plain_message = render_to_string('emails/quote_confirmation.txt', email_context)
-                send_mail(
-                    subject=f'Confirmación de Cotización Coralia: #{new_quote.tracking_code}',
-                    message=plain_message,
-                    from_email=None,
-                    recipient_list=['pedromartinezdelpaso@gmail.com'], # Or settings.EMAIL_HOST_USER
-                    html_message=html_message,
-                )
+                try:
+                    email_context = {'quote': new_quote}
+                    html_message = render_to_string('emails/quote_confirmation.html', email_context)
+                    plain_message = render_to_string('emails/quote_confirmation.txt', email_context)
+                    send_mail(
+                        subject=f'Confirmación de Cotización Coralia: #{new_quote.tracking_code}',
+                        message=plain_message,
+                        from_email=None,
+                        recipient_list=[new_quote.client_email, 'pedromartinezdelpaso@gmail.com'],
+                        html_message=html_message,
+                    )
+                except Exception as e:
+                    # Log email sending errors, but don't crash the user's experience
+                    print(f"Error sending email for quote {new_quote.tracking_code}: {e}")
 
-            # Redirect to the summary/preview page
             return redirect(reverse('quotes:ver_cotizacion', args=[new_quote.tracking_code]))
     else:
         form = QuoteForm()
 
     tracker_form = TrackerForm()
-    # Also pass available packages to the template
     packages = Package.objects.filter(is_active=True)
     return render(request, 'quotes/cotizador.html', {'form': form, 'tracker_form': tracker_form, 'packages': packages})
 
 
 def ver_cotizacion_view(request, code):
-    """
-    This is the simple confirmation/preview page shown immediately after creating a quote.
-    """
     code = code.lower()
     quote = get_object_or_404(Quote, tracking_code=code)
     return render(request, 'quotes/ver_cotizacion.html', {'quote': quote})
 
 
-# NEW VIEW for the full detail page
 def cotizacion_detail_view(request, code):
-    """
-    This is the full detail page for a tracked quote, showing program, payment info etc.
-    It can be the same as ver_cotizacion or a different template. Let's make a new one.
-    """
     code = code.lower()
     quote = get_object_or_404(Quote.objects.select_related('program'), tracking_code=code)
-    # Add payment details or contract info to context if needed
     context = {
         'quote': quote,
         'program_items': quote.program.items.select_related('repertoire_piece').all() if quote.program else [],
-        'show_payment_info': quote.status == 'CONFIRMED', # Example logic
+        'show_payment_info': quote.status in ['UNCONFIRMED', 'CONFIRMED'], # Show payment info for unconfirmed and confirmed quotes
     }
     return render(request, 'quotes/cotizacion_detail.html', context)
 
@@ -110,9 +106,6 @@ def rastrear_cotizacion_view(request):
             code = form.cleaned_data.get('tracking_code').lower()
             quote = Quote.objects.filter(tracking_code=code).first()
             if quote:
-                # Redirect to the NEW detail view after tracking
                 return redirect(reverse('quotes:cotizacion_detail', args=[code]))
 
-    # If tracking fails, redirect back to the cotizador page
-    # You might want to add a message here using Django's messaging framework
     return redirect(reverse('quotes:cotizador'))

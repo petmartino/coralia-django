@@ -14,7 +14,7 @@ class QuoteForm(forms.Form):
     ]
     
     event_type = forms.ModelChoiceField(
-        queryset=EventType.objects.all(),
+        queryset=EventType.objects.order_by('order'),
         empty_label="Seleccione un tipo de evento",
         widget=forms.Select(),
         label="Tipo de Evento"
@@ -31,9 +31,9 @@ class QuoteForm(forms.Form):
     MUSICIAN_CHOICES = [(i, f'{i} Músico' if i==1 else f'{i} Músicos') for i in [1, 2, 3, 4, 6]]
     DRESS_CODE_CHOICES = [('Formal-Casual', 'Formal-Casual'), ('Formal', 'Formal'), ('Gala', 'Gala')]
     
-    # NEW: package field, not required
+    # NEW: package field, not required, ordered by custom order field.
     package = forms.ModelChoiceField(
-        queryset=Package.objects.filter(is_active=True),
+        queryset=Package.objects.filter(is_active=True).order_by('order'),
         required=False,
         label="Seleccionar Paquete (Opcional)",
         empty_label="-- O elija una instrumentación personalizada abajo --"
@@ -43,12 +43,10 @@ class QuoteForm(forms.Form):
     dress_code = forms.ChoiceField(choices=DRESS_CODE_CHOICES, widget=forms.Select(), label="Código de Vestimenta")
     
     # Step 3 Fields
-    # UPDATED: Changed to radio buttons
     CONTACT_METHOD_CHOICES = [('WhatsApp', 'WhatsApp'), ('Llamada Telefónica', 'Llamada Telefónica'), ('Correo Electrónico', 'Correo Electrónico')]
     client_name = forms.CharField(max_length=150, required=True, label="Nombre Completo")
     client_phone = forms.CharField(max_length=50, required=False, label="Teléfono Móvil (10 dígitos)", widget=forms.TextInput(attrs={'pattern': '[0-9]{10}'}))
     client_email = forms.EmailField(max_length=150, required=False, label="Correo Electrónico")
-    # UPDATED: Widget changed to RadioSelect
     contact_method = forms.ChoiceField(choices=CONTACT_METHOD_CHOICES, widget=forms.RadioSelect, initial='WhatsApp')
     comments = forms.CharField(widget=forms.Textarea(attrs={'rows': 4}), required=False, label="Comentarios adicionales")
 
@@ -59,7 +57,6 @@ class QuoteForm(forms.Form):
         if not phone and not email:
             raise forms.ValidationError("Debe proporcionar al menos un número de teléfono o un correo electrónico.")
         
-        # Validation: If no package is selected, require musician/voice numbers.
         if not cleaned_data.get('package'):
             if not cleaned_data.get('num_voices') or not cleaned_data.get('num_musicians'):
                 raise forms.ValidationError("Debe seleccionar un paquete o especificar el número de voces y músicos.")
@@ -68,7 +65,6 @@ class QuoteForm(forms.Form):
 
 
 class TrackerForm(forms.Form):
-    # UPDATED: Max length and widget attributes
     tracking_code = forms.CharField(
         label="Ingresa su código de 8 dígitos:",
         max_length=10, 
