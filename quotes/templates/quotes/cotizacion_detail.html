@@ -157,55 +157,7 @@
                 <li><strong>Vestimenta:</strong> <span>{{ quote.get_dress_code_display }}</span></li>
             </ul>
         </div>
-        <div class="grid-widget">
-            <h3>Resumen de Costos</h3>
-            <ul>
-                <li><strong>Subtotal:</strong> <span>${{ quote.total_cost|add:quote.discount|floatformat:2 }}</span>
-                </li>
-                {% if quote.discount > 0 %}
-                <li style="color: green;"><strong>Descuento:</strong> <span>- ${{ quote.discount|floatformat:2 }}</span>
-                </li>
-                {% endif %}
-                <li style="font-weight: bold; border-top: 1px solid #ccc; padding-top: 10px;"><strong>Total:</strong>
-                    <span>${{ quote.total_cost|floatformat:2 }} MXN</span></li>
-                <li style="margin-top: 1rem;"><strong>Monto Pagado:</strong> <span>${{ quote.paid_amount|floatformat:2
-                        }}</span></li>
-                <li style="font-weight: bold;"><strong>Saldo Pendiente:</strong> <span>${{
-                        quote.total_cost|add:-quote.paid_amount|floatformat:2 }} MXN</span></li>
-            </ul>
-        </div>
-
-        {% if program_items %}
-        <div class="grid-widget program-list" style="grid-column: 1 / -1;">
-            <h3>Programa Musical</h3>
-            <ol>
-                {% for item in program_items %}
-                <li>{{ item.repertoire_piece.nombre }} - <em>{{ item.repertoire_piece.compositor|default:"N/A" }}</em>
-                </li>
-                {% endfor %}
-            </ol>
-        </div>
-        {% endif %}
-
-        {% if show_payment_info %}
-        <div class="grid-widget payment-info" style="grid-column: 1 / -1;">
-            <h3>Información para Pago</h3>
-            <p>Para confirmar su evento, favor de realizar un anticipo del 50% (${{
-                quote.fifty_percent_deposit|floatformat:2 }} MXN) por alguno de los siguientes medios:</p>
-            <h5>Transferencia Bancaria</h5>
-            <ul>
-                <li><strong>Banco:</strong> BBVA Bancomer</li>
-                <li><strong>CLABE:</strong> 012345678901234567</li>
-                <li><strong>A nombre de:</strong> Nombre del Titular</li>
-                <li><strong>Concepto:</strong> {{ quote.tracking_code }}</li>
-            </ul>
-            <h5>Pago en Efectivo</h5>
-            <p>Para pagos en efectivo, por favor <a href="{% url 'main:contacto' %}">contáctenos</a> para coordinar la
-                entrega.</p>
-        </div>
-        {% endif %}
-    </div>
-
+ 
     <div class="disclaimer">
         <p>Esta cotización es válida por 15 días. Para confirmar la disponibilidad y contratar, por favor contáctanos.
         </p>
