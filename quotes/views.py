@@ -89,15 +89,26 @@ def ver_cotizacion_view(request, code):
 
 
 def cotizacion_detail_view(request, code):
+    """
+    This is the full detail page for a tracked quote.
+    """
     code = code.lower()
-    quote = get_object_or_404(Quote.objects.select_related('program'), tracking_code=code)
+    # Eagerly load the related program and its items to improve performance
+    quote = get_object_or_404(Quote.objects.select_related('program', 'package', 'event_type'), tracking_code=code)
+    
+    program_items = []
+    if quote.program:
+        # Also fetch the related repertoire pieces in the same query
+        program_items = quote.program.items.select_related('repertoire_piece').order_by('order')
+
     context = {
         'quote': quote,
-        'program_items': quote.program.items.select_related('repertoire_piece').all() if quote.program else [],
-        'show_payment_info': quote.status in ['UNCONFIRMED', 'CONFIRMED'], # Show payment info for unconfirmed and confirmed quotes
+        'program_items': program_items,
+        # Show payment info if the quote is still active
+        'show_payment_info': quote.status in ['UNCONFIRMED', 'CONFIRMED'],
     }
+    # This render call will now work because the template syntax is fixed
     return render(request, 'quotes/cotizacion_detail.html', context)
-
 
 def rastrear_cotizacion_view(request):
     if request.method == 'POST':
