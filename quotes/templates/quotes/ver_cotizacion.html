@@ -62,11 +62,14 @@
         color: #666;
         text-align: center;
         margin-top: 2rem;
+        font-size: 0.9em;
     }
 
     .contact-cta {
         text-align: center;
         margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #ddd;
     }
 
     .btn {
@@ -110,22 +113,27 @@
     <div class="quote-details">
         <h3>Resumen de tu Solicitud</h3>
         <ul>
-            <li><strong>Evento:</strong> <span>{{ quote.event_type }}</span></li>
+            <li><strong>Evento:</strong> <span>{{ quote.event_type.name }}</span></li>
+            {% if quote.package %}
+            <li><strong>Ensamble:</strong> <span>Paquete: {{ quote.package.name }}</span></li>
+            {% else %}
             <li><strong>Ensamble:</strong> <span>{{ quote.num_voices }} {% if quote.num_voices == 1 %}Voz{% else
                     %}Voces{% endif %} y {{ quote.num_musicians }} {% if quote.num_musicians == 1 %}Músico{% else
                     %}Músicos{% endif %}</span></li>
+            {% endif %}
             <li><strong>Código de Vestimenta:</strong> <span>{{ quote.dress_code }}</span></li>
             {% if quote.event_date %}
             <li><strong>Fecha Estimada:</strong> <span>{{ quote.event_date|date:"d \d\e F, Y" }}</span></li>
             {% endif %}
             <li><strong>Ubicación:</strong> <span>{{ quote.get_location_type_display }}</span></li>
+            <li><strong>Estado de la Cotización:</strong> <span>{{ quote.get_status_display }}</span></li>
         </ul>
     </div>
 
     <div class="disclaimer">
-        <p>Esta cotización es informativa y válida por 15 días. No constituye ninguna obligación o contrato. Los precios
-            pueden variar si los detalles del evento cambian. Para confirmar disponibilidad y contratar, por favor
-            contáctanos.</p>
+        <p>Esta cotización es informativa y válida por 15 días. No constituye ninguna obligación o contrato. El precio
+            final puede variar si los detalles del evento cambian. Para confirmar la disponibilidad y contratar, por
+            favor contáctanos.</p>
     </div>
 
     <div class="contact-cta">

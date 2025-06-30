@@ -21,7 +21,7 @@ class QuoteForm(forms.Form):
     )
     event_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
     event_time = forms.TimeField(required=False, widget=forms.TimeInput(attrs={'type': 'time'}))
-    location_type = forms.ChoiceField(choices=LOCATION_CHOICES, widget=forms.Select())
+    location_type = forms.ChoiceField(choices=LOCATION_CHOICES, widget=forms.Select(), label="Ubicación del Evento")
     # NEW: event_address field
     event_address = forms.CharField(max_length=512, required=False, label="Dirección o Parroquia (Opcional)", widget=forms.TextInput(attrs={'placeholder': 'Ej. Parroquia de San Juan Macías, Zapopan'}))
     is_exterior = forms.BooleanField(required=False)
@@ -38,19 +38,19 @@ class QuoteForm(forms.Form):
         label="Seleccionar Paquete (Opcional)",
         empty_label="-- O elija una instrumentación personalizada abajo --"
     )
-    num_voices = forms.ChoiceField(choices=VOICE_CHOICES, widget=forms.Select(), required=False)
-    num_musicians = forms.ChoiceField(choices=MUSICIAN_CHOICES, widget=forms.Select(), required=False)
-    dress_code = forms.ChoiceField(choices=DRESS_CODE_CHOICES, widget=forms.Select())
+    num_voices = forms.ChoiceField(choices=VOICE_CHOICES, widget=forms.Select(), required=False, label="Número de Voces")
+    num_musicians = forms.ChoiceField(choices=MUSICIAN_CHOICES, widget=forms.Select(), required=False, label="Número de Músicos")
+    dress_code = forms.ChoiceField(choices=DRESS_CODE_CHOICES, widget=forms.Select(), label="Código de Vestimenta")
     
     # Step 3 Fields
     # UPDATED: Changed to radio buttons
     CONTACT_METHOD_CHOICES = [('WhatsApp', 'WhatsApp'), ('Llamada Telefónica', 'Llamada Telefónica'), ('Correo Electrónico', 'Correo Electrónico')]
-    client_name = forms.CharField(max_length=150, required=True)
-    client_phone = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'pattern': '[0-9]{10}'}))
-    client_email = forms.EmailField(max_length=150, required=False)
+    client_name = forms.CharField(max_length=150, required=True, label="Nombre Completo")
+    client_phone = forms.CharField(max_length=50, required=False, label="Teléfono Móvil (10 dígitos)", widget=forms.TextInput(attrs={'pattern': '[0-9]{10}'}))
+    client_email = forms.EmailField(max_length=150, required=False, label="Correo Electrónico")
     # UPDATED: Widget changed to RadioSelect
     contact_method = forms.ChoiceField(choices=CONTACT_METHOD_CHOICES, widget=forms.RadioSelect, initial='WhatsApp')
-    comments = forms.CharField(widget=forms.Textarea(attrs={'rows': 4}), required=False)
+    comments = forms.CharField(widget=forms.Textarea(attrs={'rows': 4}), required=False, label="Comentarios adicionales")
 
     def clean(self):
         cleaned_data = super().clean()
@@ -73,5 +73,5 @@ class TrackerForm(forms.Form):
         label="Ingresa su código de 8 dígitos:",
         max_length=10, 
         required=True, 
-        widget=forms.TextInput(attrs={'size': '10'})
+        widget=forms.TextInput(attrs={'size': '10', 'placeholder': 'Ej. gwwrzsev'})
     )

@@ -34,11 +34,10 @@ def servicios(request):
 def videos(request):
     return render(request, 'main/videos.html')
 
-# --- VERIFY THIS VIEW ---
+# --- UPDATED VIEW ---
 def repertorio_list(request):
-    # This query gets all the pieces.
-    pieces = RepertoirePiece.objects.all().order_by('nombre')
-    # The context dictionary MUST use the key 'pieces' to match your template.
+    # This query gets all pieces and pre-fetches their related tags to avoid extra DB hits.
+    pieces = RepertoirePiece.objects.prefetch_related('tags').all().order_by('nombre')
     context = {
         'pieces': pieces
     }

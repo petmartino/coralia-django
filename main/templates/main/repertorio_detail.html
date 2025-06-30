@@ -13,6 +13,15 @@
     {% if piece.tonalidad %}
     <p><strong>Tonalidad:</strong> {{ piece.tonalidad }}</p>
     {% endif %}
+    {% if piece.tags.all %}
+    <p>
+        <strong>Tags:</strong>
+        {% for tag in piece.tags.all %}
+        <span style="background-color: #eee; padding: 3px 8px; border-radius: 12px; font-size: 0.9em;">{{ tag.name
+            }}</span>{% if not forloop.last %} {% endif %}
+        {% endfor %}
+    </p>
+    {% endif %}
     {% if piece.comentarios %}
     <p><strong>Comentarios:</strong> {{ piece.comentarios }}</p>
     {% endif %}

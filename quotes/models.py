@@ -82,6 +82,15 @@ class Quote(models.Model):
         WEBSITE = 'WEBSITE', _('Website')
         ADMIN = 'ADMIN', _('Admin')
 
+    LOCATION_CHOICES = [
+        ('dentro_periferico', 'Dentro del periférico de Guadalajara'),
+        ('fuera_periferico', 'Fuera del periférico (ZMG)'),
+        ('1_hora', 'A 1 hora de Guadalajara'),
+        ('2_horas', 'A 2 horas de Guadalajara'),
+        ('3_horas', 'A más de 3 horas de Guadalajara'),
+    ]
+    DRESS_CODE_CHOICES = [('Formal-Casual', 'Formal-Casual'), ('Formal', 'Formal'), ('Gala', 'Gala')]
+
     tracking_code = models.CharField(max_length=12, unique=True, db_index=True)
     
     # Relationships
@@ -93,7 +102,7 @@ class Quote(models.Model):
     # Event Details
     event_date = models.DateField(blank=True, null=True)
     event_time = models.TimeField(blank=True, null=True)
-    location_type = models.CharField(max_length=100, blank=True, null=True)
+    location_type = models.CharField(max_length=100, blank=True, null=True, choices=LOCATION_CHOICES, verbose_name="Ubicación")
     # NEW: event address field
     event_address = models.CharField(max_length=512, blank=True, null=True, verbose_name="Dirección del Evento")
     is_exterior = models.BooleanField(default=False)
@@ -101,7 +110,7 @@ class Quote(models.Model):
     # Ensemble Details (used if no package is selected)
     num_voices = models.IntegerField(default=1)
     num_musicians = models.IntegerField(default=1)
-    dress_code = models.CharField(max_length=50, blank=True, null=True)
+    dress_code = models.CharField(max_length=50, blank=True, null=True, choices=DRESS_CODE_CHOICES, verbose_name="Código de Vestimenta")
 
     # Client Details
     client_name = models.CharField(max_length=150, blank=True, null=True)

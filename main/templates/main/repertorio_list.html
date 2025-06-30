@@ -38,6 +38,7 @@
             <tr>
                 <th>Nombre de la Pieza</th>
                 <th>Compositor</th>
+                <th>Tags</th>
             </tr>
         </thead>
         <tbody>
@@ -47,6 +48,13 @@
                     <a href="{% url 'main:repertorio_detail' piece.id %}">{{ piece.nombre }}</a>
                 </td>
                 <td>{{ piece.compositor|default:"No especificado" }}</td>
+                <td>
+                    {% for tag in piece.tags.all %}
+                    {{ tag.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                    -
+                    {% endfor %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>

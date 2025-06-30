@@ -110,22 +110,6 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # --- ADDED MIDDLEWARE ---
-    'request.middleware.RequestMiddleware',
-    'analytics.middleware.VisitTrackingMiddleware', # <-- UNCOMMENT THIS
-    'user_visit.middleware.UserVisitMiddleware',
-    # --- REORDER admin_reorder middleware
-    'admin_reorder.middleware.ModelAdminReorder',
-]
-
 ADMIN_REORDER = (
     # Group all quote-related models together
     {'app': 'quotes', 'label': 'Cotizaciones y Programas',

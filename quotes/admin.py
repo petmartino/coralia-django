@@ -1,15 +1,19 @@
 # quotes/admin.py
 
 from django.contrib import admin
-from .models import Quote, Program, ProgramItem, EventType, Package, QuoteHistory # <-- Import new models
+from django import forms
+from django.db import models
+from .models import Quote, Program, ProgramItem, EventType, Package, QuoteHistory
 from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin
 
 # Register the new Package model
 @admin.register(Package)
 class PackageAdmin(admin.ModelAdmin):
-    list_display = ('name', 'num_singers', 'num_instrument_players')
+    list_display = ('name', 'num_singers', 'num_instrument_players', 'is_active')
     list_filter = ('is_active',)
     search_fields = ('name',)
+    list_editable = ('is_active',)
+
 
 @admin.register(EventType)
 class EventTypeAdmin(admin.ModelAdmin):
@@ -23,15 +27,14 @@ class ProgramItemInline(SortableInlineAdminMixin, admin.TabularInline):
     fields = ('repertoire_piece',)
     autocomplete_fields = ['repertoire_piece']
 
-# UPDATED: Remove SortableAdminMixin to fix the error and disable sorting.
+# UPDATED: Re-added SortableAdminMixin and specified list_display_links
 @admin.register(Program)
-class ProgramAdmin(SortableAdminMixin, admin.ModelAdmin): # <--- REMOVED SortableAdminMixin
+class ProgramAdmin(SortableAdminMixin, admin.ModelAdmin):
     inlines = [ProgramItemInline]
     list_display = ('__str__', 'quote_tracking_code', 'piece_count')
     search_fields = ['name', 'quote__tracking_code']
-
-    # This allows you to edit the name directly in the list view
-    list_display_links = ('name',)
+    # This forces the first column (__str__) to be a clickable link.
+    list_display_links = ('__str__',)
 
     @admin.display(description='Quote ID')
     def quote_tracking_code(self, obj):
@@ -54,21 +57,30 @@ class QuoteHistoryInline(admin.TabularInline):
     def has_add_permission(self, request, obj=None):
         return False
 
+# NEW: Custom form to control widgets in QuoteAdmin
+class QuoteAdminForm(forms.ModelForm):
+    class Meta:
+        model = Quote
+        fields = "__all__"
+        widgets = {
+            'event_address': forms.Textarea(attrs={'rows': 4}),
+        }
+
 # Greatly enhanced QuoteAdmin
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
-    list_display = ('tracking_code', 'client_name', 'event_type', 'status', 'event_date', 'total_cost', 'paid_amount')
+    form = QuoteAdminForm  # Use the custom form
+    list_display = ('tracking_code', 'client_name', 'event_type', 'status', 'event_date', 'total_cost', 'paid_amount', 'balance_due')
     list_filter = ('status', 'event_type', 'event_date', 'created_by_source')
     search_fields = ('tracking_code', 'client_name', 'client_email', 'event_address')
-    # Make all cost fields readonly to enforce recalculation
     readonly_fields = (
         'tracking_code', 'created_at', 'updated_at', 'created_by_source', 'created_by_user',
         'total_cost', 'payment_per_musician', 'cost_musicians_base', 'cost_weekend_fee', 
         'cost_distance_fee', 'cost_gala_fee', 'cost_primetime_fee', 'cost_manager_base',
         'cost_manager_per_person', 'cost_manager_exterior', 'cost_manager_boda', 'cost_car_fee',
-        'total_musician_payout_rounded'
+        'total_musician_payout_rounded', 'balance_due'
     )
-    inlines = [QuoteHistoryInline] # <-- ADD HISTORY
+    inlines = [QuoteHistoryInline]
 
     fieldsets = (
         ('Información General', {
@@ -81,7 +93,7 @@ class QuoteAdmin(admin.ModelAdmin):
             'fields': ('num_voices', 'num_musicians')
         }),
         ('Pago y Costo', {
-            'fields': ('paid_amount', 'discount', 'total_cost', 'payment_per_musician')
+            'fields': ('paid_amount', 'discount', 'total_cost', 'balance_due', 'payment_per_musician')
         }),
         ('Contacto del Cliente', {
             'fields': ('client_email', 'client_phone', 'contact_method', 'comments')
@@ -99,35 +111,48 @@ class QuoteAdmin(admin.ModelAdmin):
         }),
     )
 
-    # UPDATED save_model to include recalculation and history tracking
+    @admin.display(description='Saldo Pendiente')
+    def balance_due(self, obj):
+        balance = obj.total_cost - obj.paid_amount
+        return f"${balance:,.2f} MXN"
+
     def save_model(self, request, obj, form, change):
-        from .utils import calculate_pricing  # We'll move pricing logic to a utility function
+        from .utils import calculate_pricing
         
         original_obj = None
         if change:
             original_obj = Quote.objects.get(pk=obj.pk)
 
-        # Recalculate pricing
-        pricing_breakdown = calculate_pricing(obj) # Pass the whole object
+        pricing_breakdown = calculate_pricing(obj)
         for key, value in pricing_breakdown.items():
-            setattr(obj, key, value) # Update the object with new calculated values
+            setattr(obj, key, value)
 
-        # When a quote is saved in the admin, set the source to ADMIN if it's new
         if not obj.pk: 
             obj.created_by_source = Quote.CreatedSource.ADMIN
         
-        # Always update the user who last saved it
         obj.created_by_user = request.user
         
         super().save_model(request, obj, form, change)
 
-        # Track changes
         if change and original_obj:
             changes = []
-            for field in form.changed_data:
+            changed_fields = form.changed_data
+            if 'status' in changed_fields:
+                old_status = original_obj.get_status_display()
+                new_status = obj.get_status_display()
+                changes.append(f"Estado cambiado de '{old_status}' a '{new_status}'")
+                if 'status' in changed_fields: changed_fields.remove('status') # prevent duplication
+
+            for field in changed_fields:
                 old_val = getattr(original_obj, field)
                 new_val = getattr(obj, field)
-                changes.append(f"'{field}' cambiado de '{old_val}' a '{new_val}'")
+                # Ensure verbose_name exists to prevent errors on system fields
+                try:
+                    verbose_name = obj._meta.get_field(field).verbose_name
+                except Exception:
+                    verbose_name = field
+                changes.append(f"'{verbose_name}' cambiado de '{old_val}' a '{new_val}'")
+
             if changes:
                 QuoteHistory.objects.create(
                     quote=obj,

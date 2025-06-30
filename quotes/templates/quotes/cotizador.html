@@ -4,7 +4,7 @@
 
 {% block head_extra %}
 <style>
-    /* Same CSS as before */
+    /* ... (CSS is largely the same, but let's add a few tweaks) ... */
     .cotizador-container {
         max-width: 700px;
         margin: 2rem auto;
@@ -54,9 +54,19 @@
         box-sizing: border-box;
     }
 
+    /* NEW: Styling for radio buttons */
     .radio-group label {
         display: inline-block;
         margin-right: 1rem;
+    }
+
+    .contact-method-radio div {
+        margin-bottom: 0.5rem;
+    }
+
+    .contact-method-radio label {
+        font-weight: normal;
+        margin-left: 0.5rem;
     }
 
     .btn-group {
@@ -91,6 +101,23 @@
 
     #initial-choice .btn {
         margin: 0 10px;
+    }
+
+    /* UPDATED: tracker form styles */
+    #tracker-wrapper {
+        text-align: center;
+    }
+
+    #tracker-form {
+        display: none;
+        margin-top: 1.5rem;
+    }
+
+    #tracker-form input {
+        max-width: 200px;
+        margin: 0.5rem auto;
+        text-align: center;
+        font-size: 1.1em;
     }
 
     #loading-overlay {
@@ -128,9 +155,9 @@
         }
     }
 
-    #tracker-form {
+    /* NEW: Hide/Show custom ensemble based on package selection */
+    #custom-ensemble-fields.hidden {
         display: none;
-        margin-top: 1rem;
     }
 </style>
 {% endblock %}
@@ -142,19 +169,21 @@
     <div id="initial-choice" class="cotizador-step active" style="text-align: center;">
         <h2>Bienvenido al Cotizador</h2>
         <p>¿Qué le gustaría hacer?</p>
-        <div style="margin-top: 2rem;">
+        <div class="btn-group" style="justify-content: center;">
             <button id="start-quote-btn" class="btn btn-primary btn-large">📅 Cotizar mi Evento</button>
-            <button id="track-quote-btn" class="btn btn-secondary btn-large">🔍 Rastrear Cotización</button>
         </div>
-        <div id="tracker-form">
-            <form action="{% url 'quotes:rastrear_cotizacion' %}" method="POST">
-                {% csrf_token %}
-                <div class="form-group">
-                    {{ tracker_form.tracking_code.label_tag }}
-                    {{ tracker_form.tracking_code }}
-                </div>
-                <button type="submit" class="btn btn-primary">Buscar</button>
-            </form>
+        <div id="tracker-wrapper" style="margin-top: 2rem;">
+            <button id="track-quote-btn" class="btn btn-secondary btn-large">🔍 Rastrear Cotización</button>
+            <div id="tracker-form">
+                <form action="{% url 'quotes:rastrear_cotizacion' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        {{ tracker_form.tracking_code.label_tag }}
+                        {{ tracker_form.tracking_code }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Buscar</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -164,26 +193,36 @@
         <div id="step-1" class="cotizador-step">
             <h2>Paso 1: Detalles del Evento 📝</h2>
             <div class="form-group">
-                <label for="{{ form.event_type.id_for_label }}">Tipo de Evento</label>
+                {{ form.event_type.label_tag }}
                 {{ form.event_type }}
             </div>
             <div class="form-group">
-                <label for="{{ form.event_date.id_for_label }}">Fecha y Hora (Opcional)</label>
+                <label>Fecha y Hora (Opcional)</label>
                 <div style="display: flex; gap: 1rem;">
                     {{ form.event_date }}
                     {{ form.event_time }}
                 </div>
             </div>
             <div class="form-group">
-                <label for="{{ form.location_type.id_for_label }}">Ubicación del Evento</label>
+                {{ form.location_type.label_tag }}
                 {{ form.location_type }}
             </div>
+            <!-- NEW: Address field -->
+            <div class="form-group">
+                {{ form.event_address.label_tag }}
+                {{ form.event_address }}
+            </div>
+            <!-- UPDATED: Radio buttons inline -->
             <div class="form-group radio-group">
                 <label>El evento es en:</label>
-                <input type="radio" id="interior" name="is_exterior" value="false" checked> <label
-                    for="interior">Interior</label>
-                <input type="radio" id="exterior" name="is_exterior" value="true"> <label
-                    for="exterior">Exterior</label>
+                <span>
+                    <input type="radio" id="interior" name="is_exterior" value="False" checked> <label
+                        for="interior">Interior</label>
+                </span>
+                <span style="margin-left: 1rem;">
+                    <input type="radio" id="exterior" name="is_exterior" value="True"> <label
+                        for="exterior">Exterior</label>
+                </span>
             </div>
             <div class="btn-group">
                 <span></span>
@@ -194,16 +233,27 @@
         <!-- Step 2: Ensemble Details -->
         <div id="step-2" class="cotizador-step">
             <h2>Paso 2: Detalles del Ensamble 🎶</h2>
+            <!-- NEW: Package selection -->
             <div class="form-group">
-                <label for="{{ form.num_voices.id_for_label }}">Seleccione el tamaño del coro</label>
-                {{ form.num_voices }}
+                {{ form.package.label_tag }}
+                {{ form.package }}
+                <small>Si selecciona un paquete, se ignorarán los campos de abajo.</small>
             </div>
-            <div class="form-group">
-                <label for="{{ form.num_musicians.id_for_label }}">Seleccione el número de músicos</label>
-                {{ form.num_musicians }}
+
+            <!-- Custom ensemble section -->
+            <div id="custom-ensemble-fields">
+                <div class="form-group">
+                    {{ form.num_voices.label_tag }}
+                    {{ form.num_voices }}
+                </div>
+                <div class="form-group">
+                    {{ form.num_musicians.label_tag }}
+                    {{ form.num_musicians }}
+                </div>
             </div>
+
             <div class="form-group">
-                <label for="{{ form.dress_code.id_for_label }}">Código de Vestimenta</label>
+                {{ form.dress_code.label_tag }}
                 {{ form.dress_code }}
             </div>
             <div class="btn-group">
@@ -217,23 +267,23 @@
             <h2>Paso 3: Datos de Contacto 📞</h2>
             <p>Necesitamos su nombre y al menos un método de contacto.</p>
             <div class="form-group">
-                <label for="{{ form.client_name.id_for_label }}">Nombre Completo *</label>
+                {{ form.client_name.label_tag }}
                 {{ form.client_name }}
             </div>
             <div class="form-group">
-                <label for="{{ form.client_phone.id_for_label }}">Teléfono Móvil (10 dígitos)</label>
+                {{ form.client_phone.label_tag }}
                 {{ form.client_phone }}
             </div>
             <div class="form-group">
-                <label for="{{ form.client_email.id_for_label }}">Correo Electrónico</label>
+                {{ form.client_email.label_tag }}
                 {{ form.client_email }}
             </div>
-            <div class="form-group">
-                <label for="{{ form.contact_method.id_for_label }}">Prefiero que me contacten por:</label>
+            <div class="form-group contact-method-radio">
+                <label>Prefiero que me contacten por:</label>
                 {{ form.contact_method }}
             </div>
             <div class="form-group">
-                <label for="{{ form.comments.id_for_label }}">Comentarios adicionales</label>
+                {{ form.comments.label_tag }}
                 {{ form.comments }}
             </div>
             <div class="btn-group">
@@ -247,16 +297,18 @@
 <!-- Loading overlay -->
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <p>Revisando disponibilidad en el calendario...</p>
+    <p>Generando su cotización...</p>
 </div>
 
 <script>
-    let currentStep = 0; // 0 is the initial choice screen
+    let currentStep = 0;
     const steps = document.querySelectorAll('.cotizador-step');
     const quoteForm = document.getElementById('quote-form');
 
     document.getElementById('start-quote-btn').addEventListener('click', () => { nextStep(1); });
-    document.getElementById('track-quote-btn').addEventListener('click', () => { document.getElementById('tracker-form').style.display = 'block'; });
+    document.getElementById('track-quote-btn').addEventListener('click', () => {
+        document.getElementById('tracker-form').style.display = 'block';
+    });
 
     function showStep(stepIndex) {
         steps.forEach((step, index) => { step.classList.toggle('active', index === stepIndex); });
@@ -265,7 +317,20 @@
     function nextStep(stepIndex) { showStep(stepIndex); }
     function prevStep(stepIndex) { showStep(stepIndex); }
 
+    // NEW: Logic to hide/show custom ensemble fields
+    const packageSelect = document.getElementById('id_package');
+    const customFields = document.getElementById('custom-ensemble-fields');
+    if (packageSelect) {
+        packageSelect.addEventListener('change', (e) => {
+            customFields.classList.toggle('hidden', !!e.target.value);
+        });
+        // Initial check in case of form reload with a value
+        customFields.classList.toggle('hidden', !!packageSelect.value);
+    }
+
+
     quoteForm.addEventListener('submit', function (e) {
+        // Client-side validation
         const name = document.getElementById('id_client_name').value;
         const phone = document.getElementById('id_client_phone').value;
         const email = document.getElementById('id_client_email').value;
@@ -273,6 +338,16 @@
         if (currentStep === 3 && (!name || (!phone && !email))) {
             e.preventDefault();
             alert('Por favor, ingrese su nombre y al menos un teléfono o correo electrónico.');
+            return;
+        }
+
+        // Check package/custom ensemble validation
+        const numVoices = document.getElementById('id_num_voices').value;
+        const numMusicians = document.getElementById('id_num_musicians').value;
+        if (currentStep === 3 && !packageSelect.value && (!numVoices || !numMusicians)) {
+            e.preventDefault();
+            alert('Debe seleccionar un paquete o especificar el número de voces y músicos.');
+            nextStep(2); // Send user back to the problem step
             return;
         }
 
