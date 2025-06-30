@@ -125,39 +125,8 @@
         </div>
     </div>
 
-    <div class="grid-container">
-        <div class="grid-widget">
-            <h3>Detalles del Evento</h3>
-            <ul>
-                <li><strong>Evento:</strong> <span>{{ quote.event_type }}</span></li>
-                {% if quote.event_date %}
-                <li><strong>Fecha:</strong> <span>{{ quote.event_date|date:"d \d\e F, Y" }} a las {{
-                        quote.event_time|time:"H:i" }}</span></li>
-                {% endif %}
-                <li><strong>Ubicación:</strong> <span>{{ quote.get_location_type_display }}</span></li>
-                {% if quote.event_address %}
-                <li><strong>Dirección:</strong> <span>{{ quote.event_address }}</span></li>
-                {% endif %}
-                <li><strong>Recinto:</strong> <span>{% if quote.is_exterior %}Exterior{% else %}Interior{% endif
-                        %}</span></li>
-            </ul>
-        </div>
-        <div class="grid-widget">
-            <h3>Detalles del Ensamble</h3>
-            <ul>
-                {% if quote.package %}
-                <li><strong>Paquete:</strong> <span>{{ quote.package.name }}</span></li>
-                <li><strong>Descripción:</strong> <span>{{ quote.package.description|default:"-" }}</span></li>
-                <li><strong>Músicos:</strong> <span>{{ quote.package.num_singers }} Voces, {{
-                        quote.package.num_instrument_players }} Músicos</span></li>
-                {% else %}
-                <li><strong>Músicos:</strong> <span>{{ quote.num_voices }} Voces, {{ quote.num_musicians }}
-                        Músicos</span></li>
-                {% endif %}
-                <li><strong>Vestimenta:</strong> <span>{{ quote.get_dress_code_display }}</span></li>
-            </ul>
-        </div>
- 
+    
+
     <div class="disclaimer">
         <p>Esta cotización es válida por 15 días. Para confirmar la disponibilidad y contratar, por favor contáctanos.
         </p>
