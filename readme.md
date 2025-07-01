@@ -1,12 +1,11 @@
 ##TODO 
 
-YO
-- Agregar * required y alguna validacion en cotización
-- fix frontend cotizador radios
-- The interior/exterior radio buttons should be presented on the same line.
+YO FRONTEND
 - Mostrar payment information REAL a confirmed
+- Información para confirmar
 - Mejorar página de contacto
-
+- REVISAR O ARREGLAR QUE LLEGUEN MAILS
+- HABILITAR REQUESTS
 
 # V 2 - PAGOS / CONTRATOS / EMAILS 
 - Program templates primario, orden...  Template pieces tmb con orden. 

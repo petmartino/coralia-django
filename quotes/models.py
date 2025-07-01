@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
+# ... Package and EventType models remain the same ...
 class Package(models.Model):
     name = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)
@@ -21,8 +22,8 @@ class EventType(models.Model):
     def __str__(self): return self.name
     class Meta: ordering = ['order']
 
+
 class Quote(models.Model):
-    # --- UPDATED STATUSES IN SPANISH ---
     class QuoteStatus(models.TextChoices):
         UNCONFIRMED = 'UNCONFIRMED', _('Por Confirmar')
         CONFIRMED = 'CONFIRMED', _('Confirmado')
@@ -34,10 +35,12 @@ class Quote(models.Model):
         WEBSITE = 'WEBSITE', _('Sitio Web')
         ADMIN = 'ADMIN', _('Admin')
     
+    # ... other choices ...
     LOCATION_CHOICES = [('dentro_periferico', 'Dentro del periférico de Guadalajara'), ('fuera_periferico', 'Fuera del periférico (ZMG)'), ('1_hora', 'A 1 hora de Guadalajara'), ('2_horas', 'A 2 horas de Guadalajara'), ('3_horas', 'A más de 3 horas de Guadalajara')]
     DRESS_CODE_CHOICES = [('Formal-Casual', 'Formal-Casual'), ('Formal', 'Formal'), ('Gala', 'Gala')]
     CONTACT_METHOD_CHOICES = [('WhatsApp', 'WhatsApp'), ('Llamada Telefónica', 'Llamada Telefónica'), ('Correo Electrónico', 'Correo Electrónico')]
     
+    # ... all other fields ...
     tracking_code = models.CharField(max_length=12, unique=True, db_index=True, blank=True)
     event_type = models.ForeignKey(EventType, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("Tipo de Evento"))
     package = models.ForeignKey(Package, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Paquete Seleccionado")
@@ -67,6 +70,14 @@ class Quote(models.Model):
     total_musician_payout_rounded = models.FloatField(default=0)
     payment_per_musician = models.FloatField(default=0, help_text="Pago individual por músico, calculado por el sistema.")
     discount = models.FloatField(default=0, verbose_name="Descuento (cantidad fija)")
+    
+    # --- NEW FIELD ---
+    extra_charge = models.FloatField(
+        default=0,
+        verbose_name="Cargo Extra / Ajuste",
+        help_text="Cargo adicional (positivo) o descuento (negativo) para ajustar manualmente el precio final."
+    )
+    
     paid_amount = models.FloatField(default=0, verbose_name="Monto Pagado")
     total_cost = models.FloatField(default=0)
     calculation_log = models.TextField(blank=True, null=True, editable=False, verbose_name="Registro de Cálculo")
@@ -94,8 +105,8 @@ class Quote(models.Model):
         ordering = ['-created_at']
         verbose_name = "Cotización"
         verbose_name_plural = "Cotizaciones"
-
-
+        
+# ... QuoteHistory model remains the same ...
 class QuoteHistory(models.Model):
     quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name='history')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)

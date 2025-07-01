@@ -3,6 +3,7 @@ from django.utils.html import mark_safe
 from .models import Quote, EventType, Package, QuoteHistory
 from .views import generate_tracking_code
 
+# ... PackageAdmin and EventTypeAdmin remain the same ...
 @admin.register(Package)
 class PackageAdmin(admin.ModelAdmin):
     list_display = ('name', 'num_singers', 'num_instrument_players', 'is_active', 'order')
@@ -29,7 +30,6 @@ class QuoteAdmin(admin.ModelAdmin):
     list_display = ('tracking_code', 'client_name', 'event_type', 'status', 'event_date', 'total_cost_display')
     list_filter = ('status', 'event_type', 'event_date', 'created_by_source')
     search_fields = ('tracking_code', 'client_name', 'client_email', 'event_address')
-    # --- UPDATED readonly_fields ---
     readonly_fields = (
         'tracking_code', 'created_at', 'updated_at', 
         'display_details_and_log',
@@ -46,9 +46,12 @@ class QuoteAdmin(admin.ModelAdmin):
         ('Detalles del Cliente', {
             'fields': ('client_phone', 'client_email', 'contact_method', 'comments')
         }),
-        # --- UPDATED Costo y Pago section ---
         ('Costo y Pago', {
-            'fields': ('discount', 'paid_amount', 'payment_per_musician', 'total_cost_display', 'outstanding_balance_display')
+            'fields': (
+                # --- ADDED extra_charge ---
+                'discount', 'extra_charge', 'paid_amount', 
+                'payment_per_musician', 'total_cost_display', 'outstanding_balance_display'
+            )
         }),
         ('Cálculos y Registros (Automático)', {
             'classes': ('collapse',), 
@@ -62,16 +65,19 @@ class QuoteAdmin(admin.ModelAdmin):
     def total_cost_display(self, obj):
         return f"${obj.total_cost:,.2f}"
 
-    # --- NEW display method for outstanding balance ---
     @admin.display(description='Saldo Pendiente')
     def outstanding_balance_display(self, obj):
         return f"${obj.outstanding_balance:,.2f}"
 
     @admin.display(description="Detalles de Cálculo y Registro")
     def display_details_and_log(self, obj):
-        # --- UPDATED style for readability ---
         style = "font-family: monospace; white-space: pre-wrap; background-color: #2d2d2d; color: #f0f0f0; padding: 10px; border: 1px solid #444; border-radius: 4px;"
         
+        # --- ADDED extra_charge to the display ---
+        extra_charge_html = ""
+        if obj.extra_charge != 0:
+            extra_charge_html = f"<li><strong>Cargo Extra / Ajuste:</strong> ${obj.extra_charge:,.2f}</li>"
+
         html = f"""
         <details>
             <summary style="cursor: pointer;"><strong>Ver/Ocultar Desglose y Registro de Cálculo</strong></summary>
@@ -87,6 +93,7 @@ class QuoteAdmin(admin.ModelAdmin):
                     <li><strong>Gestión (Exterior):</strong> ${obj.cost_manager_exterior:,.2f}</li>
                     <li><strong>Gestión (Boda):</strong> ${obj.cost_manager_boda:,.2f}</li>
                     <li><strong>Transporte:</strong> ${obj.cost_car_fee:,.2f}</li>
+                    {extra_charge_html}
                 </ul>
                 <h4>Registro de Cálculo</h4>
                 <pre style="{style}">{obj.calculation_log}</pre>
@@ -95,13 +102,9 @@ class QuoteAdmin(admin.ModelAdmin):
         """
         return mark_safe(html)
 
-    # --- FIX for History Creation ---
     def save_model(self, request, obj, form, change):
-        from .utils import calculate_pricing
+        is_new = not obj.pk
         
-        is_new = not obj.pk  # Check if this is a new object before saving
-        
-        # Keep a copy of the old status if it's an existing object
         original_status = None
         if not is_new:
             original_status = Quote.objects.get(pk=obj.pk).status
@@ -109,6 +112,7 @@ class QuoteAdmin(admin.ModelAdmin):
         if not obj.tracking_code:
             obj.tracking_code = generate_tracking_code()
 
+        # Calculation logic is now in the view util, this remains the same.
         pricing_breakdown, log = calculate_pricing(obj)
         for key, value in pricing_breakdown.items():
             setattr(obj, key, value)
@@ -118,14 +122,11 @@ class QuoteAdmin(admin.ModelAdmin):
             obj.created_by_source = 'ADMIN'
         obj.created_by_user = request.user
         
-        # Save the main Quote object
         super().save_model(request, obj, form, change)
         
-        # Now that the object is saved and has a PK, create the history
         if is_new:
             QuoteHistory.objects.create(quote=obj, user=request.user, action="Cotización creada en el panel de Admin.")
         
-        # Create history entry if status changed on an existing object
         if not is_new and original_status != obj.status:
             original_status_display = Quote.QuoteStatus(original_status).label
             new_status_display = obj.get_status_display()
