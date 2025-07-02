@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.utils.html import mark_safe
+# I see `generate_tracking_code` is imported, but we need the other util function
 from .models import Quote, EventType, Package, QuoteHistory
-from .views import generate_tracking_code
+from .views import generate_tracking_code 
 
-# ... PackageAdmin and EventTypeAdmin remain the same ...
+# ... PackageAdmin, EventTypeAdmin, and QuoteHistoryInline classes are correct ...
 @admin.register(Package)
 class PackageAdmin(admin.ModelAdmin):
     list_display = ('name', 'num_singers', 'num_instrument_players', 'is_active', 'order')
@@ -48,7 +49,6 @@ class QuoteAdmin(admin.ModelAdmin):
         }),
         ('Costo y Pago', {
             'fields': (
-                # --- ADDED extra_charge ---
                 'discount', 'extra_charge', 'paid_amount', 
                 'payment_per_musician', 'total_cost_display', 'outstanding_balance_display'
             )
@@ -73,7 +73,6 @@ class QuoteAdmin(admin.ModelAdmin):
     def display_details_and_log(self, obj):
         style = "font-family: monospace; white-space: pre-wrap; background-color: #2d2d2d; color: #f0f0f0; padding: 10px; border: 1px solid #444; border-radius: 4px;"
         
-        # --- ADDED extra_charge to the display ---
         extra_charge_html = ""
         if obj.extra_charge != 0:
             extra_charge_html = f"<li><strong>Cargo Extra / Ajuste:</strong> ${obj.extra_charge:,.2f}</li>"
@@ -103,6 +102,9 @@ class QuoteAdmin(admin.ModelAdmin):
         return mark_safe(html)
 
     def save_model(self, request, obj, form, change):
+        # --- FIX: ADD THIS IMPORT ---
+        from .utils import calculate_pricing
+
         is_new = not obj.pk
         
         original_status = None
@@ -111,8 +113,8 @@ class QuoteAdmin(admin.ModelAdmin):
 
         if not obj.tracking_code:
             obj.tracking_code = generate_tracking_code()
-
-        # Calculation logic is now in the view util, this remains the same.
+        
+        # This line will now work because of the import above
         pricing_breakdown, log = calculate_pricing(obj)
         for key, value in pricing_breakdown.items():
             setattr(obj, key, value)
