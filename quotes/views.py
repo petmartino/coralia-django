@@ -1,11 +1,13 @@
 # quotes/views.py
 import uuid
 import base58
+# --- ADD THESE IMPORTS ---
+from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
+# -------------------------
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-# --- We are temporarily not using Program logic ---
 from .models import Quote, Package
 from .forms import QuoteForm, TrackerForm
 from .utils import calculate_pricing
@@ -43,7 +45,24 @@ def cotizador_view(request):
                 **pricing_breakdown 
             )
             new_quote.save()
-            # ... email sending logic ...
+
+            # --- ADD EMAIL SENDING LOGIC ---
+            if new_quote.client_email:
+                subject = f"Confirmación de Cotización Coralia: {new_quote.tracking_code}"
+                context = {'quote': new_quote}
+                html_message = render_to_string('emails/quote_confirmation.html', context)
+                plain_message = render_to_string('emails/quote_confirmation.txt', context)
+                
+                send_mail(
+                    subject,
+                    plain_message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [new_quote.client_email],
+                    html_message=html_message,
+                    fail_silently=False # Set to False during development to see errors
+                )
+            # --------------------------------
+
             return redirect(reverse('quotes:ver_cotizacion', args=[new_quote.tracking_code]))
     else:
         form = QuoteForm()
@@ -52,19 +71,11 @@ def cotizador_view(request):
     return render(request, 'quotes/cotizador.html', {'form': form, 'tracker_form': tracker_form, 'packages': packages})
 
 def ver_cotizacion_view(request, code):
-    """
-    This is the simple confirmation/preview page. It works without program logic.
-    """
     code = code.lower()
     quote = get_object_or_404(Quote, tracking_code=code)
     return render(request, 'quotes/ver_cotizacion.html', {'quote': quote})
 
-# This view is temporarily disabled in urls.py until the database is fixed.
-# The code itself is correct for when we are ready to use it again.
 def cotizacion_detail_view(request, code):
-    """
-    This is the full detail page.
-    """
     code = code.lower()
     quote = get_object_or_404(Quote.objects.select_related('package', 'event_type'), tracking_code=code)
     context = {
@@ -80,7 +91,5 @@ def rastrear_cotizacion_view(request):
             code = form.cleaned_data.get('tracking_code').lower()
             quote = Quote.objects.filter(tracking_code=code).first()
             if quote:
-                # This now correctly redirects to the URL name 'cotizacion_detail',
-                # which is currently pointing to the simple view. This is what we want.
                 return redirect(reverse('quotes:cotizacion_detail', args=[code]))
     return redirect(reverse('quotes:cotizador'))

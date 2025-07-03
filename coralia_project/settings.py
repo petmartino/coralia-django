@@ -15,21 +15,24 @@ ALLOWED_HOSTS = ['127.0.0.1', 'musicaparamisas.com', 'www.musicaparamisas.com', 
 # (Keep all existing content)
 # ...
 
+# coralia_project/settings.py
+
 INSTALLED_APPS = [
-    'admin_reorder', # <-- MUST BE BEFORE 'django.contrib.admin'
+    'admin_reorder',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # --- ADDED APP ---
     'request',
     # Our local apps
     'main.apps.MainConfig',
     'quotes.apps.QuotesConfig',
-    'analytics.apps.AnalyticsConfig', # <-- UNCOMMENT THIS
+    'analytics.apps.AnalyticsConfig',
     'user_visit',
+    'program_templates.apps.ProgramTemplatesConfig',
+    'programs.apps.ProgramsConfig', # <-- ADD THIS
     'adminsortable2',
 ]
 # (Keep all other content the same)
@@ -47,7 +50,7 @@ MIDDLEWARE = [
     'analytics.middleware.VisitTrackingMiddleware', # <-- UNCOMMENT THIS
     'user_visit.middleware.UserVisitMiddleware',
     # --- REORDER admin_reorder middleware
-    'admin_reorder.middleware.ModelAdminReorder',
+    #'admin_reorder.middleware.ModelAdminReorder',
 ]
 
 ROOT_URLCONF = 'coralia_project.urls'
@@ -118,18 +121,6 @@ from pathlib import Path
 # ...
 # ...
 
-ADMIN_REORDER = (
-    {'app': 'quotes', 'label': 'Cotizaciones y Programas',
-     'models': ('quotes.Quote', 'quotes.EventType', 'quotes.Package')},
-    {'app': 'main', 'label': 'Contenido Principal',
-     'models': ('main.RepertoirePiece', 'main.Tag')},
-    {'app': 'analytics', 'label': 'Estadísticas del Sitio',
-     'models': ('analytics.Visit',)},
-    {'app': 'auth', 'label': 'Autorización',
-     'models': ('auth.User', 'auth.Group')},
-)
-
-ADMIN_REORDER_FE_ONLY = False 
 
 # THIS IS THE CRITICAL FIX
 REQUEST_IGNORE_PATHS = (

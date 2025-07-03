@@ -1,15 +1,31 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django import forms
 from django.utils.html import mark_safe
-# I see `generate_tracking_code` is imported, but we need the other util function
-from .models import Quote, EventType, Package, QuoteHistory
-from .views import generate_tracking_code 
+from .models import Quote, EventType, Package
+from programs.models import Program, ProgramItem
+from .views import generate_tracking_code
+from programs.admin import ProgramInline
 
-# ... PackageAdmin, EventTypeAdmin, and QuoteHistoryInline classes are correct ...
+class QuoteAdminForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # --- UI FIX: REMOVE ALL EXTRA LINKS FROM DROPDOWNS ---
+        for field_name in ['program_template', 'package', 'event_type']:
+            if field_name in self.fields:
+                widget = self.fields[field_name].widget
+                widget.can_add_related = False
+                widget.can_change_related = False
+                widget.can_delete_related = False
+                widget.can_view_related = False
+
+    class Meta:
+        model = Quote
+        fields = '__all__'
+        widgets = { 'event_address': forms.Textarea(attrs={'rows': 3}), }
+
 @admin.register(Package)
 class PackageAdmin(admin.ModelAdmin):
     list_display = ('name', 'num_singers', 'num_instrument_players', 'is_active', 'order')
-    list_filter = ('is_active',)
-    search_fields = ('name',)
     list_editable = ('is_active', 'order')
 
 @admin.register(EventType)
@@ -17,50 +33,23 @@ class EventTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'order', 'is_funeral_type', 'has_wedding_fee')
     list_editable = ('order',)
 
-class QuoteHistoryInline(admin.TabularInline):
-    model = QuoteHistory
-    extra = 0
-    readonly_fields = ('user', 'timestamp', 'action')
-    can_delete = False
-    
-    def has_add_permission(self, request, obj=None):
-        return False
-
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
-    list_display = ('tracking_code', 'client_name', 'event_type', 'status', 'event_date', 'total_cost_display')
-    list_filter = ('status', 'event_type', 'event_date', 'created_by_source')
-    search_fields = ('tracking_code', 'client_name', 'client_email', 'event_address')
-    readonly_fields = (
-        'tracking_code', 'created_at', 'updated_at', 
-        'display_details_and_log',
-        'total_cost_display', 'payment_per_musician', 'outstanding_balance_display'
-    )
+    form = QuoteAdminForm
+    inlines = [ProgramInline]
+    list_display = ('tracking_code', 'client_name', 'event_type', 'status', 'event_date')
+    list_filter = ('status', 'event_type', 'event_date')
+    search_fields = ('tracking_code', 'client_name', 'event_address')
+    readonly_fields = ('tracking_code', 'created_at', 'updated_at', 'display_calculation_log', 'total_cost_display', 'outstanding_balance_display', 'payment_per_musician')
     
     fieldsets = (
-        ('Información Principal', {
-            'fields': ('tracking_code', 'client_name', 'status', 'event_type')
-        }),
-        ('Detalles del Evento y Agrupación', {
-            'fields': ('package', ('event_date', 'event_time'), ('location_type', 'is_exterior'), 'event_address', 'dress_code', ('num_voices', 'num_musicians'))
-        }),
-        ('Detalles del Cliente', {
-            'fields': ('client_phone', 'client_email', 'contact_method', 'comments')
-        }),
-        ('Costo y Pago', {
-            'fields': (
-                'discount', 'extra_charge', 'paid_amount', 
-                'payment_per_musician', 'total_cost_display', 'outstanding_balance_display'
-            )
-        }),
-        ('Cálculos y Registros (Automático)', {
-            'classes': ('collapse',), 
-            'fields': ('display_details_and_log', 'created_by_source', 'created_by_user'),
-        }),
+        ('Información Principal', {'fields': ('tracking_code', 'client_name', 'status', 'event_type')}),
+        ('Detalles del Evento', {'fields': ('package', ('event_date', 'event_time'), 'location_type', 'event_address', 'dress_code', ('num_voices', 'num_musicians'))}),
+        ('Aplicar Plantilla de Programa', {'description': '<b>Advertencia:</b> Al seleccionar una plantilla y guardar, se <b>creará o sobrescribirá por completo</b> el programa de esta cotización.','fields': ('program_template',)}),
+        ('Costo y Pago', {'fields': ('total_cost_display', 'discount', 'extra_charge', 'paid_amount', 'outstanding_balance_display')}),
+        ('Cálculos Detallados (Solo Lectura)', {'classes': ('collapse',), 'fields': ('display_calculation_log',)})
     )
-
-    inlines = [QuoteHistoryInline]
-    
+        
     @admin.display(description='Costo Total')
     def total_cost_display(self, obj):
         return f"${obj.total_cost:,.2f}"
@@ -69,68 +58,65 @@ class QuoteAdmin(admin.ModelAdmin):
     def outstanding_balance_display(self, obj):
         return f"${obj.outstanding_balance:,.2f}"
 
-    @admin.display(description="Detalles de Cálculo y Registro")
-    def display_details_and_log(self, obj):
-        style = "font-family: monospace; white-space: pre-wrap; background-color: #2d2d2d; color: #f0f0f0; padding: 10px; border: 1px solid #444; border-radius: 4px;"
-        
-        extra_charge_html = ""
-        if obj.extra_charge != 0:
-            extra_charge_html = f"<li><strong>Cargo Extra / Ajuste:</strong> ${obj.extra_charge:,.2f}</li>"
+    @admin.display(description="Registro de Cálculo")
+    def display_calculation_log(self, obj):
+        # --- UI FIX: GRAY BACKGROUND WITH WHITE TEXT ---
+        style = "font-family: monospace; white-space: pre-wrap; background-color: #4a4a4a; color: #fff; padding: 10px; border-radius: 4px;"
+        return mark_safe(f'<pre style="{style}">{obj.calculation_log or "No hay registro."}</pre>')
 
-        html = f"""
-        <details>
-            <summary style="cursor: pointer;"><strong>Ver/Ocultar Desglose y Registro de Cálculo</strong></summary>
-            <div style="padding-top: 10px;">
-                <h4>Desglose de Costos</h4>
-                <ul>
-                    <li><strong>Costo Base Músicos:</strong> ${obj.cost_musicians_base:,.2f}</li>
-                    <li><strong>Aumento Vestimenta:</strong> ${obj.cost_gala_fee:,.2f}</li>
-                    <li><strong>Aumento Horario Estelar:</strong> ${obj.cost_primetime_fee:,.2f}</li>
-                    <li><strong>Aumento Distancia:</strong> ${obj.cost_distance_fee:,.2f}</li>
-                    <li><strong>Gestión (Base):</strong> ${obj.cost_manager_base:,.2f}</li>
-                    <li><strong>Gestión (Por Músico):</strong> ${obj.cost_manager_per_person:,.2f}</li>
-                    <li><strong>Gestión (Exterior):</strong> ${obj.cost_manager_exterior:,.2f}</li>
-                    <li><strong>Gestión (Boda):</strong> ${obj.cost_manager_boda:,.2f}</li>
-                    <li><strong>Transporte:</strong> ${obj.cost_car_fee:,.2f}</li>
-                    {extra_charge_html}
-                </ul>
-                <h4>Registro de Cálculo</h4>
-                <pre style="{style}">{obj.calculation_log}</pre>
-            </div>
-        </details>
-        """
-        return mark_safe(html)
+    def get_inline_instances(self, request, obj=None):
+        if not obj: # Don't show Program box for new, unsaved Quotes
+            return []
+        return super().get_inline_instances(request, obj)
+    
+    def get_form(self, request, obj=None, **kwargs):
+        # This makes sure our custom form is always used.
+        kwargs['form'] = self.form
+        return super().get_form(request, obj, **kwargs)
 
     def save_model(self, request, obj, form, change):
-        # --- FIX: ADD THIS IMPORT ---
         from .utils import calculate_pricing
 
         is_new = not obj.pk
-        
-        original_status = None
-        if not is_new:
-            original_status = Quote.objects.get(pk=obj.pk).status
-
-        if not obj.tracking_code:
+        if is_new and not obj.tracking_code:
             obj.tracking_code = generate_tracking_code()
-        
-        # This line will now work because of the import above
-        pricing_breakdown, log = calculate_pricing(obj)
-        for key, value in pricing_breakdown.items():
+
+        super().save_model(request, obj, form, change) # Save Quote first
+
+        program_template = form.cleaned_data.get('program_template')
+        if program_template:
+            # --- FEATURE: Overwrite/Create Program from Template ---
+            program, created = Program.objects.get_or_create(quote=obj)
+            
+            # Safely get a name for the program
+            event_name = obj.event_type.name if obj.event_type else 'Evento'
+            program.name = f"Programa para {event_name} - {obj.client_name}"
+            
+            if not created:
+                program.items.all().delete()
+                messages.warning(request, 'El programa existente fue sobrescrito con la nueva plantilla.')
+            else:
+                messages.success(request, 'Se creó un programa a partir de la plantilla seleccionada.')
+
+            for item in program_template.items.order_by('order'):
+                ProgramItem.objects.create(program=program, piece=item.piece, order=item.order)
+            program.save()
+            obj.program_template = None
+
+        pricing, log = calculate_pricing(obj)
+        for key, value in pricing.items():
             setattr(obj, key, value)
         obj.calculation_log = log
-
-        if is_new:
-            obj.created_by_source = 'ADMIN'
-        obj.created_by_user = request.user
-        
         super().save_model(request, obj, form, change)
-        
-        if is_new:
-            QuoteHistory.objects.create(quote=obj, user=request.user, action="Cotización creada en el panel de Admin.")
-        
-        if not is_new and original_status != obj.status:
-            original_status_display = Quote.QuoteStatus(original_status).label
-            new_status_display = obj.get_status_display()
-            action_text = f"Estado cambiado de '{original_status_display}' a '{new_status_display}'."
-            QuoteHistory.objects.create(quote=obj, user=request.user, action=action_text)
+
+    # --- THE DEFINITIVE FIX FOR THE DELETION ERROR ---
+    def delete_queryset(self, request, queryset):
+        for quote in queryset:
+            if hasattr(quote, 'program'):
+                quote.program.delete()
+        super().delete_queryset(request, queryset)
+
+    def delete_model(self, request, obj):
+        if hasattr(obj, 'program'):
+            obj.program.delete()
+        super().delete_model(request, obj)

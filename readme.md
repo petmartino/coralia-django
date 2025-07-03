@@ -1,28 +1,29 @@
 ##TODO 
 
 YO FRONTEND
+- Información para confirmar a unconfirmed
 - Mostrar payment information REAL a confirmed
-- Información para confirmar
 - Mejorar página de contacto
-- REVISAR O ARREGLAR QUE LLEGUEN MAILS
-- HABILITAR REQUESTS
+- History of quote abajo
+- MINI SEO en repertorio
+s
 
 # V 2 - PAGOS / CONTRATOS / EMAILS 
-- Program templates primario, orden...  Template pieces tmb con orden. 
-- Custom program 
-- NO TRACKEAR FAVICON
-- PERMITIR ARMAR LA PLANTILLA DE MÚSICOS EN QUOTE
-- CUSTOM PROGRAM FROM PROGRAM TEMPLATES
-- INCLUIR DESCUENTO SITIO WEB AJUSTAR TARIFA (+20%) (-20%) 
+- Musician fee per event
+- REVISAR O ARREGLAR QUE LLEGUEN MAILS
+- INCLUIR DESCUENTO FRONTEND y AJUSTAR TARIFAS (+20%) (-20%) 
 - PREPARAR LO DEL CONTRATO
 - BOTON PARA DATOS DE PAGO
-- CADA QUIEN SUS QUOTES, 
+- Modificar variables de costo generales desde admin
+- Event type tiene custom fee. En vez de is funeral type...     
 
-- PREPARAR BOTONES PARA COBRAR EN STRIPE
+- CADA QUIEN SUS QUOTES, 
+- PREPARAR BOTONES PARA COBRAR EN STRIPE? Mercadopago? 
 - ADMINISTRAR EMAILS Y SETEAR? (un solo formato y en txt se hagan automático?)
 - MAILS DESDE BOTÓN (ENVIAR CORREO DE CONFIRMACIÓN)
-- DIRECCIÓN DEL EVENTO esta debe setear ubicación 
+- DIRECCIÓN DEL EVENTO esta debe setear ubicación via api google
 - Contact methods en modelo (más no en admin)
+- PERMITIR ARMAR LA PLANTILLA DE MÚSICOS EN QUOTE y en frontend
 
 
 

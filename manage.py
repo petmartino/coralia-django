@@ -2,9 +2,11 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+# --- ADD THIS LINE ---
 from dotenv import load_dotenv 
 
 def main():
+    # --- AND THIS LINE ---
     load_dotenv() 
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'coralia_project.settings')

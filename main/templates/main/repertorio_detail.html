@@ -1,73 +1,132 @@
 <!-- templates/repertorio_detail.html -->
 {% extends "main/base.html" %}
 
-{% block title %}{{ piece.nombre }} - Repertorio{% endblock %}
+{% comment %}
+Block for SEO Meta Tags. This content will be placed in the
 
-{% block main_content %}
-<div class="container">
+<head> section.
+    We override the standard meta tags from base.html for this specific page.
+    {% endcomment %}
+    {% block title %}{{ piece.nombre }} de {{ piece.compositor }} - Repertorio Coralia{% endblock %}
+    {% block description %}Detalles, letra y video de la pieza musical '{{ piece.nombre }}', compuesta por {{
+    piece.compositor|default:"compositor clásico" }}. Parte del repertorio de Coralia Ensamble para misas y eventos.{%
+    endblock %}
 
-    <p><a href="{% url 'main:repertorio_list' %}">← Volver a la lista del Repertorio</a></p>
+    {% block head_extra %}
+    {# SEO: Open Graph Tags for Social Media Sharing #}
+    <meta property="og:title" content="{{ piece.nombre }} - {{ piece.compositor }}">
+    <meta property="og:description" content="Letra y detalles de la obra musical '{{ piece.nombre }}'.">
+    <meta property="og:type" content="music.song">
+    {# If you had images for each piece, you would link them here #}
+    {#
+    <meta property="og:image" content="{{ piece.image.url }}"> #}
 
-    <h1>{{ piece.nombre }}</h1>
-    <p><strong>Compositor:</strong> {{ piece.compositor|default:"No especificado" }}</p>
-    {% if piece.tonalidad %}
-    <p><strong>Tonalidad:</strong> {{ piece.tonalidad }}</p>
-    {% endif %}
-    {% if piece.tags.all %}
-    <p>
-        <strong>Tags:</strong>
-        {% for tag in piece.tags.all %}
-        <span style="background-color: #eee; padding: 3px 8px; border-radius: 12px; font-size: 0.9em;">{{ tag.name
-            }}</span>{% if not forloop.last %} {% endif %}
-        {% endfor %}
-    </p>
-    {% endif %}
-    {% if piece.comentarios %}
-    <p><strong>Comentarios:</strong> {{ piece.comentarios }}</p>
-    {% endif %}
+    {# SEO: Structured Data using JSON-LD. Helps Google understand the page content. #}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "MusicComposition",
+      "name": "{{ piece.nombre }}",
+      {% if piece.compositor %}
+      "composer": {
+        "@type": "Person",
+        "name": "{{ piece.compositor }}"
+      },
+      {% endif %}
+      "iswcCode": "T-123.456.789-0", {# Example ISWC, replace if you have real ones #}
+      "url": "{{ request.build_absolute_uri }}",
+      {% if piece.letra_original %}
+      "lyrics": {
+        "@type": "CreativeWork",
+        "text": "{{ piece.letra_original|escapejs }}"
+      },
+      {% endif %}
+      "inLanguage": "la" {# Default to Latin, change if you have language per piece #}
+    }
+    </script>
+    {% endblock head_extra %}
 
-    {% if piece.video_url %}
-    <div class="video-container">
-        <iframe width="560" height="315" src="{{ piece.video_url }}" title="YouTube video player for {{ piece.nombre }}"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen></iframe>
+
+    {% block main_content %}
+    <div class="container">
+
+        <nav aria-label="breadcrumb">
+            <a href="{% url 'main:repertorio_list' %}">← Volver al Repertorio</a>
+        </nav>
+
+        <article>
+            <header>
+                <h1>{{ piece.nombre }}</h1>
+                <p class="piece-composer"><strong>Compositor:</strong> {{ piece.compositor|default:"No especificado" }}
+                </p>
+            </header>
+
+            <section>
+                {% if piece.tonalidad %}
+                <p><strong>Tonalidad:</strong> {{ piece.tonalidad }}</p>
+                {% endif %}
+                {% if piece.tags.all %}
+                <p>
+                    <strong>Etiquetas:</strong>
+                    {% for tag in piece.tags.all %}
+                    <span style="background-color: #eee; padding: 3px 8px; border-radius: 12px; font-size: 0.9em;">{{
+                        tag.name }}</span>{% if not forloop.last %} {% endif %}
+                    {% endfor %}
+                </p>
+                {% endif %}
+                {% if piece.comentarios %}
+                <p><strong>Comentarios:</strong> {{ piece.comentarios }}</p>
+                {% endif %}
+            </section>
+
+            {% if piece.video_url %}
+            <section class="video-section">
+                <h2>Interpretación en Video</h2>
+                <div class="video-container">
+                    <iframe width="560" height="315" src="{{ piece.video_url }}"
+                        title="YouTube video player for {{ piece.nombre }}" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
+                <hr>
+            </section>
+            {% endif %}
+
+            {% if piece.letra_original %}
+            <section class="lyrics-section">
+                <h2>Letra</h2>
+                <style>
+                    .lyrics-container {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                        gap: 2em;
+                    }
+
+                    .lyrics-column {
+                        white-space: pre-wrap;
+                        font-family: 'Georgia', serif;
+                        line-height: 1.6;
+                    }
+                </style>
+                <div class="lyrics-container">
+                    <div class="lyrics-column">
+                        <h3>Letra Original</h3>
+                        <pre><code>{{ piece.letra_original }}</code></pre>
+                    </div>
+
+                    {% if piece.letra_traducida %}
+                    <div class="lyrics-column">
+                        <h3>Traducción al Español</h3>
+                        <pre><code>{{ piece.letra_traducida }}</code></pre>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+            {% else %}
+            <p>Esta pieza es principalmente instrumental y no tiene letra registrada.</p>
+            {% endif %}
+
+        </article>
+
     </div>
-    <hr>
-    {% endif %}
-
-    {% if piece.letra_original %}
-    <h3>Letra</h3>
-    <style>
-        .lyrics-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2em;
-        }
-
-        .lyrics-column {
-            flex: 1;
-            min-width: 300px;
-            white-space: pre-wrap;
-            font-family: monospace;
-        }
-    </style>
-    <div class="lyrics-container">
-        <div class="lyrics-column">
-            <h4>Original</h4>
-            <p>{{ piece.letra_original }}</p>
-        </div>
-
-        {% if piece.letra_traducida %}
-        <div class="lyrics-column">
-            <h4>Traducción al Español</h4>
-            <p>{{ piece.letra_traducida }}</p>
-        </div>
-        {% endif %}
-    </div>
-    {% else %}
-    <p>Esta pieza es principalmente instrumental y no tiene letra registrada.</p>
-    {% endif %}
-
-</div>
-{% endblock main_content %}
+    {% endblock main_content %}
